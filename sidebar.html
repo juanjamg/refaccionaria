@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refaccionaria Central - Sidebar</title>
+  <!-- Google Fonts: Inter / Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Estilos del Sistema -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- SIDEBAR COMPONENT -->
+  <aside class="sidebar">
+    
+    <!-- LOGO DE LA EMPRESA -->
+    <div class="brand-section">
+      <img src="img/logo.png" alt="Refaccionaria Automotriz Central" class="brand-logo-img">
+    </div>
+
+    <!-- TARJETA DEL USUARIO ACTUAL -->
+    <div class="user-profile-card">
+      <div class="user-avatar">U</div>
+      <div class="user-info">
+        <span class="user-name">Usuario invitado</span>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <ul class="nav-menu" id="sidebarMenu">
+      
+      <!-- 1. Ventas (Activo por defecto) -->
+      <li class="nav-item active">
+        <a href="#ventas" class="nav-link active" data-title="Ventas">
+          <span class="nav-icon icon-ventas">
+            <!-- Icono Bolsa de dinero / Ventas -->
+            <i class="fa-solid fa-sack-dollar"></i>
+          </span>
+          <span>Ventas</span>
+        </a>
+      </li>
+
+      <!-- 2. Historial de Ventas -->
+      <li class="nav-item">
+        <a href="#historial" class="nav-link" data-title="Historial de Ventas">
+          <span class="nav-icon icon-historial">
+            <!-- Icono Portapapeles / Historial -->
+            <i class="fa-solid fa-clipboard-list"></i>
+          </span>
+          <span>Historial de Ventas</span>
+        </a>
+      </li>
+
+      <!-- 3. Inventarios -->
+      <li class="nav-item">
+        <a href="#inventarios" class="nav-link" data-title="Inventarios">
+          <span class="nav-icon icon-inventarios">
+            <!-- Icono Caja / Inventarios -->
+            <i class="fa-solid fa-box-open"></i>
+          </span>
+          <span>Inventarios</span>
+        </a>
+      </li>
+
+      <!-- 4. PRODUCTOS -->
+      <li class="nav-item">
+        <a href="#productos" class="nav-link" data-title="PRODUCTOS">
+          <span class="nav-icon icon-productos">
+            <!-- Icono Herramientas / Productos -->
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </span>
+          <span>PRODUCTOS</span>
+        </a>
+      </li>
+
+      <!-- 5. Usuarios -->
+      <li class="nav-item">
+        <a href="#usuarios" class="nav-link" data-title="Usuarios">
+          <span class="nav-icon icon-usuarios">
+            <!-- Icono Usuarios -->
+            <i class="fa-solid fa-user"></i>
+          </span>
+          <span>Usuarios</span>
+        </a>
+      </li>
+
+    </ul>
+
+    <!-- BOTÓN CERRAR SESIÓN / SALIR -->
+    <div class="sidebar-footer">
+      <a href="#salir" class="btn-logout" id="btnLogout">
+        <span class="logout-indicator"></span>
+        <span>Salir</span>
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- VISTA PREVIA DEL CONTENIDO ADYACENTE -->
+  <main class="main-preview">
+    <div class="preview-card">
+      <h1 id="contentTitle">Módulo: Ventas</h1>
+      <p>Este es el contenedor principal del sistema. Al hacer clic en los enlaces de la barra lateral, cambiará el estado activo y se actualizará esta sección.</p>
+      <div class="active-badge" id="contentBadge">Sección activa: Ventas</div>
+    </div>
+  </main>
+
+  <script>
+    // Interacción para cambiar la pestaña activa en la sidebar
+    const navLinks = document.querySelectorAll('.nav-link');
+    const contentTitle = document.getElementById('contentTitle');
+    const contentBadge = document.getElementById('contentBadge');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Remover clase 'active' de todos los elementos
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        navLinks.forEach(l => l.classList.remove('active'));
+
+        // Agregar clase 'active' al seleccionado
+        link.classList.add('active');
+        const parentLi = link.closest('.nav-item');
+        if (parentLi) parentLi.classList.add('active');
+
+        // Actualizar título
+        const title = link.getAttribute('data-title') || link.innerText.trim();
+        if (contentTitle) contentTitle.innerText = `Módulo: ${title}`;
+        if (contentBadge) contentBadge.innerText = `Sección activa: ${title}`;
+      });
+    });
+
+    // Acción para el botón salir
+    document.getElementById('btnLogout').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('¿Desea cerrar la sesión actual?')) {
+        alert('Sesión cerrada.');
+      }
+    });
+  </script>
+
+</body>
+</html>
