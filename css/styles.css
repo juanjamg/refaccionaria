@@ -254,15 +254,248 @@ body {
   display: inline-block;
 }
 
-/* ÁREA DE CONTENIDO DE EJEMPLO */
-.main-preview {
+/* ÁREA DE CONTENIDO PRINCIPAL */
+.main-preview,
+.main-content {
   flex: 1;
-  padding: 36px 40px;
+  padding: 24px;
+  background-color: var(--bg-app);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  overflow-y: auto;
 }
 
+.module-section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.module-section.hidden {
+  display: none;
+}
+
+/* LAYOUT DE VENTAS (DOS COLUMNAS) */
+.pos-layout {
+  display: grid;
+  grid-template-columns: 460px 1fr;
+  gap: 22px;
+  height: 100%;
+  min-height: calc(100vh - 48px);
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .pos-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+/* TARJETAS CONTENEDORAS BLANCAS */
+.pos-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eef1f6;
+}
+
+/* ENCABEZADOS PILL / BARRA GRIS */
+.pos-pill-header {
+  background-color: #e9ecf2;
+  color: #2b3648;
+  font-family: 'Nunito Sans', 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  padding: 11px 20px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: 0.3px;
+  user-select: none;
+}
+
+.pos-pill-header.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* FILAS DE SUBTOTAL, TOTAL, CAMBIO */
+.pos-summary-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pos-summary-label {
+  color: #334155;
+}
+
+.pos-summary-value {
+  color: #1e293b;
+}
+
+.pos-total-row {
+  margin: 18px 0;
+}
+
+.pos-total-label,
+.pos-total-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* CAMPOS DE FORMULARIO */
+.pos-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.pos-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pos-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #1e293b;
+  outline: none;
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.pos-input:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+/* SELECTS ESTILIZADOS */
+.pos-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.pos-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 38px 0 16px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: #1e293b;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.pos-select:focus {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+.pos-select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #475569;
+  pointer-events: none;
+}
+
+/* BOTONES DE ACCIÓN: COBRAR Y APARTADO */
+.pos-actions-row {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+.btn-pos {
+  flex: 1;
+  height: 52px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Nunito Sans', 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-pos:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn-pos:active {
+  transform: translateY(0);
+}
+
+/* Botón COBRAR (Verde suave con texto verde oscuro) */
+.btn-cobrar {
+  background-color: #9bd3a5;
+  color: #174223;
+}
+
+/* Botón APARTADO (Rosa malva con texto blanco) */
+.btn-apartado {
+  background-color: #ce899b;
+  color: #ffffff;
+}
+
+/* SECCIÓN PRODUCTOS (EN BLANCO) */
+.pos-products-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-blank-area {
+  flex: 1;
+  min-height: 480px;
+  background-color: transparent;
+  border-radius: 12px;
+}
+
+/* VISTA PREVIA GENÉRICA PARA OTRAS PESTAÑAS */
 .preview-card {
   background: #ffffff;
   border-radius: 20px;

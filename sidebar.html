@@ -102,18 +102,113 @@
 
   </aside>
 
-  <!-- VISTA PREVIA DEL CONTENIDO ADYACENTE -->
-  <main class="main-preview">
-    <div class="preview-card">
-      <h1 id="contentTitle">Módulo: Ventas</h1>
-      <p>Este es el contenedor principal del sistema. Al hacer clic en los enlaces de la barra lateral, cambiará el estado activo y se actualizará esta sección.</p>
-      <div class="active-badge" id="contentBadge">Sección activa: Ventas</div>
-    </div>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content" id="mainContent">
+    
+    <!-- SECCIÓN DE VENTAS -->
+    <section class="module-section" id="moduleVentas">
+      <div class="pos-layout">
+        
+        <!-- PANEL IZQUIERDO: CARRITO DE COMPRAS Y COBRO -->
+        <div class="pos-card pos-cart-card">
+          <div class="pos-pill-header">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>Carrito de Compras</span>
+          </div>
+
+          <div class="pos-summary-row">
+            <span class="pos-summary-label">Subtotal:</span>
+            <span class="pos-summary-value" id="cartSubtotal">$0</span>
+          </div>
+
+          <div class="pos-field-group">
+            <label for="inputDescuento" class="pos-label">Descuento total a la venta ($):</label>
+            <input type="number" id="inputDescuento" class="pos-input" value="0" min="0">
+          </div>
+
+          <div class="pos-summary-row pos-total-row">
+            <span class="pos-total-label">Total:</span>
+            <span class="pos-total-value" id="cartTotal">$0</span>
+          </div>
+
+          <div class="pos-field-group">
+            <label for="selectTipoPago" class="pos-label">Tipo de Pago:</label>
+            <div class="pos-select-wrapper">
+              <select id="selectTipoPago" class="pos-select">
+                <option value="efectivo" selected>Efectivo</option>
+                <option value="tarjeta_debito">Tarjeta de Débito</option>
+                <option value="tarjeta_credito">Tarjeta de Crédito</option>
+                <option value="transferencia">Transferencia</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pos-field-group">
+            <label for="selectMetodoPago" class="pos-label">Método de Pago:</label>
+            <div class="pos-select-wrapper">
+              <select id="selectMetodoPago" class="pos-select">
+                <option value="pue" selected>Pago en una sola exhibición (PUE)</option>
+                <option value="ppd">Pago en parcialidades o diferido (PPD)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pos-field-group">
+            <label for="selectComprobante" class="pos-label">Comprobante:</label>
+            <div class="pos-select-wrapper">
+              <select id="selectComprobante" class="pos-select">
+                <option value="ticket" selected>Ticket</option>
+                <option value="factura">Factura</option>
+                <option value="nota">Nota de venta</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pos-field-group">
+            <label for="inputPagaCon" class="pos-label">Con cuánto paga:</label>
+            <input type="number" id="inputPagaCon" class="pos-input" placeholder="" min="0">
+          </div>
+
+          <div class="pos-summary-row">
+            <span class="pos-summary-label">Cambio:</span>
+            <span class="pos-summary-value" id="cartCambio">$0</span>
+          </div>
+
+          <div class="pos-actions-row">
+            <button type="button" class="btn-pos btn-cobrar" id="btnCobrar">COBRAR</button>
+            <button type="button" class="btn-pos btn-apartado" id="btnApartado">APARTADO</button>
+          </div>
+        </div>
+
+        <!-- PANEL DERECHO: SELECCIONAR PRODUCTOS Y MODELOS (EN BLANCO) -->
+        <div class="pos-card pos-products-card">
+          <div class="pos-pill-header text-uppercase">
+            SELECCIONAR PRODUCTOS Y MODELOS
+          </div>
+          <div class="pos-blank-area" id="productsBlankArea">
+            <!-- Sección dejada en blanco según lo solicitado -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- OTRAS SECCIONES (OCULTAS POR DEFECTO) -->
+    <section class="module-section hidden" id="moduleOther">
+      <div class="preview-card">
+        <h1 id="contentTitle">Módulo</h1>
+        <p id="contentDesc">Contenido en desarrollo para este módulo.</p>
+        <div class="active-badge" id="contentBadge">Sección activa</div>
+      </div>
+    </section>
+
   </main>
 
   <script>
     // Interacción para cambiar la pestaña activa en la sidebar
     const navLinks = document.querySelectorAll('.nav-link');
+    const moduleVentas = document.getElementById('moduleVentas');
+    const moduleOther = document.getElementById('moduleOther');
     const contentTitle = document.getElementById('contentTitle');
     const contentBadge = document.getElementById('contentBadge');
 
@@ -130,10 +225,18 @@
         const parentLi = link.closest('.nav-item');
         if (parentLi) parentLi.classList.add('active');
 
-        // Actualizar título
         const title = link.getAttribute('data-title') || link.innerText.trim();
-        if (contentTitle) contentTitle.innerText = `Módulo: ${title}`;
-        if (contentBadge) contentBadge.innerText = `Sección activa: ${title}`;
+
+        // Mostrar sección correspondiente
+        if (title.toLowerCase() === 'ventas') {
+          moduleVentas.classList.remove('hidden');
+          moduleOther.classList.add('hidden');
+        } else {
+          moduleVentas.classList.add('hidden');
+          moduleOther.classList.remove('hidden');
+          if (contentTitle) contentTitle.innerText = `Módulo: ${title}`;
+          if (contentBadge) contentBadge.innerText = `Sección activa: ${title}`;
+        }
       });
     });
 
@@ -143,6 +246,42 @@
       if (confirm('¿Desea cerrar la sesión actual?')) {
         alert('Sesión cerrada.');
       }
+    });
+
+    // Cálculos dinámicos de Cobro / Cambio
+    const inputDescuento = document.getElementById('inputDescuento');
+    const inputPagaCon = document.getElementById('inputPagaCon');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    const cartTotal = document.getElementById('cartTotal');
+    const cartCambio = document.getElementById('cartCambio');
+
+    let subtotalValue = 0;
+
+    function recalcularTotales() {
+      const descuento = parseFloat(inputDescuento.value) || 0;
+      const total = Math.max(0, subtotalValue - descuento);
+      cartTotal.innerText = `$${total}`;
+
+      const pagaCon = parseFloat(inputPagaCon.value) || 0;
+      if (pagaCon >= total && total > 0) {
+        cartCambio.innerText = `$${pagaCon - total}`;
+      } else if (pagaCon > 0 && total === 0) {
+        cartCambio.innerText = `$${pagaCon}`;
+      } else {
+        cartCambio.innerText = `$0`;
+      }
+    }
+
+    if (inputDescuento) inputDescuento.addEventListener('input', recalcularTotales);
+    if (inputPagaCon) inputPagaCon.addEventListener('input', recalcularTotales);
+
+    // Acciones de botones
+    document.getElementById('btnCobrar').addEventListener('click', () => {
+      alert('Función de Cobrar');
+    });
+
+    document.getElementById('btnApartado').addEventListener('click', () => {
+      alert('Función de Apartado');
     });
   </script>
 
