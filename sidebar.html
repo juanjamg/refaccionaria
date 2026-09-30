@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Refaccionaria Central - Sidebar</title>
+  <title>Refaccionaria Central</title>
   <!-- Google Fonts: Inter / Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,16 +17,24 @@
 <body>
 
   <!-- SIDEBAR COMPONENT -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="appSidebar">
     
-    <!-- LOGO DE LA EMPRESA -->
-    <div class="brand-section">
-      <img src="img/logo.png" alt="Refaccionaria Automotriz Central" class="brand-logo-img">
+    <!-- ENCABEZADO CON LOGO Y BOTÓN DE COLAPSO -->
+    <div class="sidebar-header">
+      <div class="brand-section">
+        <img src="img/logo.png" alt="Refaccionaria Automotriz Central" class="brand-logo-img">
+        <div class="brand-logo-mini" title="Refaccionaria Central">
+          <i class="fa-solid fa-car-side"></i>
+        </div>
+      </div>
+      <button type="button" class="btn-sidebar-toggle" id="btnToggleSidebar" title="Contraer / Expandir menú">
+        <i class="fa-solid fa-chevron-left" id="toggleIcon"></i>
+      </button>
     </div>
 
     <!-- TARJETA DEL USUARIO ACTUAL -->
     <div class="user-profile-card">
-      <div class="user-avatar">U</div>
+      <div class="user-avatar" title="Usuario invitado">U</div>
       <div class="user-info">
         <span class="user-name">Usuario invitado</span>
       </div>
@@ -70,33 +78,54 @@
 
       <!-- 4. PRODUCTOS -->
       <li class="nav-item">
-        <a href="#productos" class="nav-link" data-title="PRODUCTOS">
+        <a href="#productos" class="nav-link" data-title="Productos">
           <span class="nav-icon icon-productos">
             <!-- Icono Herramientas / Productos -->
             <i class="fa-solid fa-screwdriver-wrench"></i>
           </span>
-          <span>PRODUCTOS</span>
+          <span>Productos</span>
         </a>
       </li>
 
-      <!-- 5. Usuarios -->
+      <!-- 5. Clientes -->
+      <li class="nav-item">
+        <a href="#clientes" class="nav-link" data-title="Clientes">
+          <span class="nav-icon icon-clientes">
+            <!-- Icono Clientes -->
+            <i class="fa-solid fa-users"></i>
+          </span>
+          <span>Clientes</span>
+        </a>
+      </li>
+
+      <!-- 6. Proveedores -->
+      <li class="nav-item">
+        <a href="#proveedores" class="nav-link" data-title="Proveedores">
+          <span class="nav-icon icon-proveedores">
+            <!-- Icono Proveedores / Camión -->
+            <i class="fa-solid fa-truck-field"></i>
+          </span>
+          <span>Proveedores</span>
+        </a>
+      </li>
+
+      <!-- 7. Usuarios -->
       <li class="nav-item">
         <a href="#usuarios" class="nav-link" data-title="Usuarios">
           <span class="nav-icon icon-usuarios">
-            <!-- Icono Usuarios -->
-            <i class="fa-solid fa-user"></i>
+            <!-- Icono Usuarios / Configuración -->
+            <i class="fa-solid fa-user-gear"></i>
           </span>
           <span>Usuarios</span>
         </a>
       </li>
-
     </ul>
 
     <!-- BOTÓN CERRAR SESIÓN / SALIR -->
     <div class="sidebar-footer">
-      <a href="#salir" class="btn-logout" id="btnLogout">
+      <a href="#salir" class="btn-logout" id="btnLogout" data-title="Cerrar sesión">
         <span class="logout-indicator"></span>
-        <span>Salir</span>
+        <span class="logout-text">Salir</span>
       </a>
     </div>
 
@@ -193,7 +222,291 @@
       </div>
     </section>
 
-    <!-- OTRAS SECCIONES (OCULTAS POR DEFECTO) -->
+    <!-- SECCIÓN DE CLIENTES -->
+    <section class="module-section hidden" id="moduleClientes">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-users" style="color: #0284c7;"></i> Directorio de Clientes</h2>
+          <p>Administra clientes particulares, talleres mecánicos y flotillas</p>
+        </div>
+        <button type="button" class="btn-primary-action" id="btnOpenClienteModal">
+          <i class="fa-solid fa-user-plus"></i> Nuevo Cliente
+        </button>
+      </div>
+
+      <!-- Métricas Clientes -->
+      <div class="stats-grid-row">
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa-solid fa-address-book"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statTotalClientes">0</span>
+            <span class="stat-label-text">Total Clientes</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statClientesActivos">0</span>
+            <span class="stat-label-text">Clientes Activos</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa-solid fa-wrench"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statClientesTalleres">0</span>
+            <span class="stat-label-text">Talleres Afiliados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Tabla Clientes -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchClientes" placeholder="Buscar por nombre, taller, RFC, teléfono o correo...">
+          </div>
+          <div class="filter-controls-group">
+            <select id="filterClienteTipo" class="filter-select-input">
+              <option value="todos">Todos los tipos</option>
+              <option value="Taller Mecánico">Taller Mecánico</option>
+              <option value="Particular">Particular</option>
+              <option value="Mayorista">Mayorista</option>
+              <option value="Flotilla">Flotilla</option>
+            </select>
+            <select id="filterClienteEstado" class="filter-select-input">
+              <option value="todos">Todos los estados</option>
+              <option value="Activo">Activos</option>
+              <option value="Inactivo">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaClientes">
+            <thead>
+              <tr>
+                <th>Cliente / Razón Social</th>
+                <th>RFC</th>
+                <th>Contacto / Teléfono</th>
+                <th>Correo Electrónico</th>
+                <th>Estado</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyClientes">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-bar">
+          <span id="countClientesInfo">Mostrando 0 clientes</span>
+          <span>Refaccionaria Central - Catálogo de Clientes</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN DE PROVEEDORES -->
+    <section class="module-section hidden" id="moduleProveedores">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-truck-field" style="color: #ea580c;"></i> Directorio de Proveedores</h2>
+          <p>Gestiona distribuidores, fabricantes mayoristas y líneas de autopartes</p>
+        </div>
+        <button type="button" class="btn-primary-action" id="btnOpenProveedorModal">
+          <i class="fa-solid fa-plus"></i> Nuevo Proveedor
+        </button>
+      </div>
+
+      <!-- Métricas Proveedores -->
+      <div class="stats-grid-row">
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-orange">
+            <i class="fa-solid fa-boxes-packing"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statTotalProveedores">0</span>
+            <span class="stat-label-text">Total Proveedores</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statProveedoresActivos">0</span>
+            <span class="stat-label-text">Activos con Catálogo</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statProveedoresCredito">0</span>
+            <span class="stat-label-text">Con Línea de Crédito</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa-solid fa-tags"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num">8 Líneas</span>
+            <span class="stat-label-text">Categorías de Refacciones</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Tabla Proveedores -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchProveedores" placeholder="Buscar por distribuidora, contacto, refacciones o RFC...">
+          </div>
+          <div class="filter-controls-group">
+            <select id="filterProveedorCategoria" class="filter-select-input">
+              <option value="todos">Todas las categorías</option>
+              <option value="Suspensión y Dirección">Suspensión y Dirección</option>
+              <option value="Frenos">Frenos</option>
+              <option value="Motor">Motor</option>
+              <option value="Eléctrico">Eléctrico</option>
+              <option value="Lubricantes y Filtros">Lubricantes y Filtros</option>
+              <option value="Colisión y Accesorios">Colisión y Accesorios</option>
+            </select>
+            <select id="filterProveedorEstado" class="filter-select-input">
+              <option value="todos">Todos los estados</option>
+              <option value="Activo">Activos</option>
+              <option value="Inactivo">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaProveedores">
+            <thead>
+              <tr>
+                <th>Proveedor / Empresa</th>
+                <th>Contacto Directo</th>
+                <th>RFC</th>
+                <th>Teléfono / WhatsApp</th>
+                <th>Categoría Principal</th>
+                <th>Días de Crédito</th>
+                <th>Estado</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProveedores">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-bar">
+          <span id="countProveedoresInfo">Mostrando 0 proveedores</span>
+          <span>Refaccionaria Central - Proveeduría y Abastecimiento</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN DE USUARIOS -->
+    <section class="module-section hidden" id="moduleUsuarios">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-user-gear" style="color: #4f46e5;"></i> Gestión de Usuarios del Sistema</h2>
+          <p>Administración de cuentas, perfiles de cajeros, administradores y accesos</p>
+        </div>
+        <button type="button" class="btn-primary-action" id="btnOpenUsuarioModal">
+          <i class="fa-solid fa-user-shield"></i> Nuevo Usuario
+        </button>
+      </div>
+
+      <!-- Métricas Usuarios -->
+      <div class="stats-grid-row">
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statTotalUsuarios">0</span>
+            <span class="stat-label-text">Total Usuarios</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statUsuariosAdmin">0</span>
+            <span class="stat-label-text">Administradores</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa-solid fa-cash-register"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statUsuariosCajeros">0</span>
+            <span class="stat-label-text">Cajeros / Mostrador</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Tabla Usuarios -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchUsuarios" placeholder="Buscar por nombre, usuario de acceso o correo...">
+          </div>
+          <div class="filter-controls-group">
+            <select id="filterUsuarioRol" class="filter-select-input">
+              <option value="todos">Todos los roles</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Cajero">Cajero</option>
+            </select>
+            <select id="filterUsuarioEstado" class="filter-select-input">
+              <option value="todos">Todos los estados</option>
+              <option value="Activo">Activos</option>
+              <option value="Inactivo">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaUsuarios">
+            <thead>
+              <tr>
+                <th>Usuario / Colaborador</th>
+                <th>Correo Electrónico</th>
+                <th>Rol / Permiso</th>
+                <th>Último Acceso</th>
+                <th>Estado</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyUsuarios">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-bar">
+          <span id="countUsuariosInfo">Mostrando 0 usuarios</span>
+          <span>Refaccionaria Central - Seguridad y Control de Accesos</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTRAS SECCIONES (HISTORIAL, INVENTARIOS, PRODUCTOS) -->
     <section class="module-section hidden" id="moduleOther">
       <div class="preview-card">
         <h1 id="contentTitle">Módulo</h1>
@@ -204,86 +517,206 @@
 
   </main>
 
-  <script>
-    // Interacción para cambiar la pestaña activa en la sidebar
-    const navLinks = document.querySelectorAll('.nav-link');
-    const moduleVentas = document.getElementById('moduleVentas');
-    const moduleOther = document.getElementById('moduleOther');
-    const contentTitle = document.getElementById('contentTitle');
-    const contentBadge = document.getElementById('contentBadge');
+  <!-- ==================== MODAL CLIENTE ==================== -->
+  <div class="custom-modal-overlay" id="modalCliente">
+    <div class="custom-modal-content">
+      <div class="modal-header-bar">
+        <h3 id="modalClienteTitle"><i class="fa-solid fa-user-plus"></i> Nuevo Cliente</h3>
+        <button type="button" class="btn-close-modal" data-close="modalCliente"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formCliente">
+        <input type="hidden" id="clienteId">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteNombre">Nombre o Razón Social *</label>
+              <input type="text" id="clienteNombre" class="form-control-input" required placeholder="Ej. Taller Mecánico Especializado">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteTipo">Tipo de Cliente *</label>
+              <select id="clienteTipo" class="form-control-select" required>
+                <option value="Particular">Particular</option>
+                <option value="Taller Mecánico" selected>Taller Mecánico</option>
+                <option value="Mayorista">Mayorista</option>
+                <option value="Flotilla">Flotilla</option>
+              </select>
+            </div>
+          </div>
 
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteRfc">RFC o Identificación</label>
+              <input type="text" id="clienteRfc" class="form-control-input" placeholder="XAXX010101000">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteTelefono">Teléfono de Contacto *</label>
+              <input type="text" id="clienteTelefono" class="form-control-input" required placeholder="55 1234 5678">
+            </div>
+          </div>
 
-        // Remover clase 'active' de todos los elementos
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        navLinks.forEach(l => l.classList.remove('active'));
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteEmail">Correo Electrónico</label>
+              <input type="email" id="clienteEmail" class="form-control-input" placeholder="cliente@correo.com">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="clienteEstado">Estado de la Cuenta</label>
+              <select id="clienteEstado" class="form-control-select">
+                <option value="Activo" selected>Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-action" data-close="modalCliente">Cancelar</button>
+          <button type="submit" class="btn-primary-action"><i class="fa-solid fa-floppy-disk"></i> Guardar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-        // Agregar clase 'active' al seleccionado
-        link.classList.add('active');
-        const parentLi = link.closest('.nav-item');
-        if (parentLi) parentLi.classList.add('active');
+  <!-- ==================== MODAL PROVEEDOR ==================== -->
+  <div class="custom-modal-overlay" id="modalProveedor">
+    <div class="custom-modal-content">
+      <div class="modal-header-bar">
+        <h3 id="modalProveedorTitle"><i class="fa-solid fa-truck-field"></i> Nuevo Proveedor</h3>
+        <button type="button" class="btn-close-modal" data-close="modalProveedor"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formProveedor">
+        <input type="hidden" id="proveedorId">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorEmpresa">Empresa / Razón Social *</label>
+              <input type="text" id="proveedorEmpresa" class="form-control-input" required placeholder="Ej. Autopartes y Refacciones de México">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorContacto">Persona de Contacto *</label>
+              <input type="text" id="proveedorContacto" class="form-control-input" required placeholder="Ej. Lic. Roberto Gómez">
+            </div>
+          </div>
 
-        const title = link.getAttribute('data-title') || link.innerText.trim();
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorRfc">RFC de la Empresa</label>
+              <input type="text" id="proveedorRfc" class="form-control-input" placeholder="ARM950812XYZ">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorTelefono">Teléfono / WhatsApp *</label>
+              <input type="text" id="proveedorTelefono" class="form-control-input" required placeholder="81 8321 0099">
+            </div>
+          </div>
 
-        // Mostrar sección correspondiente
-        if (title.toLowerCase() === 'ventas') {
-          moduleVentas.classList.remove('hidden');
-          moduleOther.classList.add('hidden');
-        } else {
-          moduleVentas.classList.add('hidden');
-          moduleOther.classList.remove('hidden');
-          if (contentTitle) contentTitle.innerText = `Módulo: ${title}`;
-          if (contentBadge) contentBadge.innerText = `Sección activa: ${title}`;
-        }
-      });
-    });
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorCategoria">Categoría Principal *</label>
+              <select id="proveedorCategoria" class="form-control-select" required>
+                <option value="Suspensión y Dirección">Suspensión y Dirección</option>
+                <option value="Frenos">Frenos</option>
+                <option value="Motor">Motor</option>
+                <option value="Eléctrico">Eléctrico</option>
+                <option value="Lubricantes y Filtros">Lubricantes y Filtros</option>
+                <option value="Colisión y Accesorios">Colisión y Accesorios</option>
+              </select>
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorCredito">Días de Crédito Otorgados</label>
+              <input type="number" id="proveedorCredito" class="form-control-input" value="30" min="0" step="5">
+            </div>
+          </div>
 
-    // Acción para el botón salir
-    document.getElementById('btnLogout').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('¿Desea cerrar la sesión actual?')) {
-        alert('Sesión cerrada.');
-      }
-    });
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorEmail">Correo de Pedidos</label>
+              <input type="email" id="proveedorEmail" class="form-control-input" placeholder="ventas@proveedor.com">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorEstado">Estado del Proveedor</label>
+              <select id="proveedorEstado" class="form-control-select">
+                <option value="Activo" selected>Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-action" data-close="modalProveedor">Cancelar</button>
+          <button type="submit" class="btn-primary-action"><i class="fa-solid fa-floppy-disk"></i> Guardar Proveedor</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    // Cálculos dinámicos de Cobro / Cambio
-    const inputDescuento = document.getElementById('inputDescuento');
-    const inputPagaCon = document.getElementById('inputPagaCon');
-    const cartSubtotal = document.getElementById('cartSubtotal');
-    const cartTotal = document.getElementById('cartTotal');
-    const cartCambio = document.getElementById('cartCambio');
+  <!-- ==================== MODAL USUARIO ==================== -->
+  <div class="custom-modal-overlay" id="modalUsuario">
+    <div class="custom-modal-content">
+      <div class="modal-header-bar">
+        <h3 id="modalUsuarioTitle"><i class="fa-solid fa-user-shield"></i> Nuevo Usuario</h3>
+        <button type="button" class="btn-close-modal" data-close="modalUsuario"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formUsuario">
+        <input type="hidden" id="usuarioId">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioNombre">Nombre Completo *</label>
+              <input type="text" id="usuarioNombre" class="form-control-input" required placeholder="Ej. Juan Pérez Garza">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioUsername">Nombre de Usuario (Login) *</label>
+              <input type="text" id="usuarioUsername" class="form-control-input" required placeholder="jperez">
+            </div>
+          </div>
 
-    let subtotalValue = 0;
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioEmail">Correo Electrónico *</label>
+              <input type="email" id="usuarioEmail" class="form-control-input" required placeholder="juan.perez@refaccionaria.com">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioRol">Rol en el Sistema *</label>
+              <select id="usuarioRol" class="form-control-select" required>
+                <option value="Administrador">Administrador (Acceso Total)</option>
+                <option value="Cajero" selected>Cajero (Punto de Venta)</option>
+              </select>
+            </div>
+          </div>
 
-    function recalcularTotales() {
-      const descuento = parseFloat(inputDescuento.value) || 0;
-      const total = Math.max(0, subtotalValue - descuento);
-      cartTotal.innerText = `$${total}`;
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioPassword">Contraseña <span id="passOptionalText" style="font-weight: normal; color: #64748b;">*</span></label>
+              <input type="password" id="usuarioPassword" class="form-control-input" placeholder="••••••••">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="usuarioEstado">Estado</label>
+              <select id="usuarioEstado" class="form-control-select">
+                <option value="Activo" selected>Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-action" data-close="modalUsuario">Cancelar</button>
+          <button type="submit" class="btn-primary-action"><i class="fa-solid fa-floppy-disk"></i> Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      const pagaCon = parseFloat(inputPagaCon.value) || 0;
-      if (pagaCon >= total && total > 0) {
-        cartCambio.innerText = `$${pagaCon - total}`;
-      } else if (pagaCon > 0 && total === 0) {
-        cartCambio.innerText = `$${pagaCon}`;
-      } else {
-        cartCambio.innerText = `$0`;
-      }
-    }
+  <!-- NOTIFICACIÓN TOAST FLOTANTE -->
+  <div class="toast-notice" id="toastNotice">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMessage">Operación realizada con éxito</span>
+  </div>
 
-    if (inputDescuento) inputDescuento.addEventListener('input', recalcularTotales);
-    if (inputPagaCon) inputPagaCon.addEventListener('input', recalcularTotales);
-
-    // Acciones de botones
-    document.getElementById('btnCobrar').addEventListener('click', () => {
-      alert('Función de Cobrar');
-    });
-
-    document.getElementById('btnApartado').addEventListener('click', () => {
-      alert('Función de Apartado');
-    });
-  </script>
+  <!-- SCRIPTS MODULARES -->
+  <script src="js/app.js"></script>
+  <script src="js/ventas.js"></script>
+  <script src="js/clientes.js"></script>
+  <script src="js/proveedores.js"></script>
+  <script src="js/usuarios.js"></script>
 
 </body>
 </html>
