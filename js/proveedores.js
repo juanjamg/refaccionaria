@@ -1,17 +1,18 @@
 // ==========================================
 // PROVEEDORES.JS - MÓDULO DE PROVEEDORES (CRUD & FILTROS)
+// Datos reales desde la API (SQL Server)
 // ==========================================
 
-let proveedoresData = JSON.parse(localStorage.getItem('refa_proveedores')) || [
-  { id: 1, empresa: 'Distribuidora Automotriz DANA', contacto: 'Lic. Roberto Garza', rfc: 'DAD980315RT2', telefono: '81 8345 9012', email: 'ventas@dana-refacciones.mx', categoria: 'Suspensión y Dirección', creditoDias: 30, estado: 'Activo' },
-  { id: 2, empresa: 'Baleros y Retenes SYD de México', contacto: 'Ing. Sandra Pineda', rfc: 'BRS040810HP7', telefono: '55 5812 7700', email: 'pedidos@sydmexico.com', categoria: 'Suspensión y Dirección', creditoDias: 45, estado: 'Activo' },
-  { id: 3, empresa: 'Frenos y Balatas Brembo / Fritec', contacto: 'Marco Aurelio Vega', rfc: 'FBF120919JK1', telefono: '33 3619 4433', email: 'mvega@fritec.com.mx', categoria: 'Frenos', creditoDias: 30, estado: 'Activo' },
-  { id: 4, empresa: 'Lubricantes y Filtros Mobil / Gonher', contacto: 'Armando Cisneros', rfc: 'LFM110202TT8', telefono: '81 8150 2000', email: 'ventas@gonher-mobil.com', categoria: 'Lubricantes y Filtros', creditoDias: 15, estado: 'Activo' },
-  { id: 5, empresa: 'Autopartes Eléctricas Bosch & Denso', contacto: 'Ing. Laura Salgado', rfc: 'AEB990425AA3', telefono: '55 5284 3000', email: 'atencion@bosch-autopartes.mx', categoria: 'Eléctrico', creditoDias: 30, estado: 'Activo' }
-];
+let proveedoresData = [];
 
-function saveProveedores() {
-  localStorage.setItem('refa_proveedores', JSON.stringify(proveedoresData));
+async function loadProveedores() {
+  try {
+    const json = await apiRequest('proveedores/');
+    proveedoresData = json.data;
+    renderProveedores();
+  } catch (err) {
+    showToast(err.message, 'danger');
+  }
 }
 
 function renderProveedores() {
@@ -27,11 +28,11 @@ function renderProveedores() {
   const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
 
   const filtered = proveedoresData.filter(p => {
-    const matchesSearch = p.empresa.toLowerCase().includes(search) || 
-                          p.contacto.toLowerCase().includes(search) || 
-                          p.rfc.toLowerCase().includes(search) || 
-                          p.telefono.includes(search) || 
-                          p.categoria.toLowerCase().includes(search);
+    const matchesSearch = p.empresa.toLowerCase().includes(search) ||
+                          (p.contacto || '').toLowerCase().includes(search) ||
+                          (p.rfc || '').toLowerCase().includes(search) ||
+                          (p.telefono || '').includes(search) ||
+                          (p.categoria || '').toLowerCase().includes(search);
     const matchesCat = filterCat === 'todos' || p.categoria === filterCat;
     const matchesEstado = filterEstado === 'todos' || p.estado === filterEstado;
     return matchesSearch && matchesCat && matchesEstado;
@@ -56,7 +57,7 @@ function renderProveedores() {
           </div>
         </td>
         <td>
-          <div style="font-weight: 700; color: #1e293b;"><i class="fa-regular fa-user" style="color: #64748b; font-size: 11px;"></i> ${p.contacto}</div>
+          <div style="font-weight: 700; color: #1e293b;"><i class="fa-regular fa-user" style="color: #64748b; font-size: 11px;"></i> ${p.contacto || 'Sin contacto'}</div>
         </td>
         <td><strong>${p.rfc || 'Sin RFC'}</strong></td>
         <td>
@@ -64,7 +65,7 @@ function renderProveedores() {
         </td>
         <td>
           <span class="badge-tag" style="background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
-            <i class="fa-solid fa-screwdriver-wrench" style="color: #ea580c; font-size: 10px;"></i> ${p.categoria}
+            <i class="fa-solid fa-screwdriver-wrench" style="color: #ea580c; font-size: 10px;"></i> ${p.categoria || 'General'}
           </span>
         </td>
         <td>
@@ -79,10 +80,10 @@ function renderProveedores() {
         </td>
         <td>
           <div class="action-buttons-group" style="justify-content: center;">
-            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarProveedor(${p.id})">
+            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarProveedor('${p.id}')">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarProveedor(${p.id})">
+            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarProveedor('${p.id}')">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -120,14 +121,14 @@ if (btnOpenProveedorModal) {
 }
 
 window.editarProveedor = function(id) {
-  const prov = proveedoresData.find(p => p.id === id);
+  const prov = proveedoresData.find(p => p.id == id);
   if (!prov) return;
   document.getElementById('proveedorId').value = prov.id;
   document.getElementById('proveedorEmpresa').value = prov.empresa;
-  document.getElementById('proveedorContacto').value = prov.contacto;
+  document.getElementById('proveedorContacto').value = prov.contacto || '';
   document.getElementById('proveedorRfc').value = prov.rfc || '';
   document.getElementById('proveedorTelefono').value = prov.telefono;
-  document.getElementById('proveedorCategoria').value = prov.categoria;
+  document.getElementById('proveedorCategoria').value = prov.categoria || '';
   document.getElementById('proveedorCredito').value = prov.creditoDias || 0;
   document.getElementById('proveedorEmail').value = prov.email || '';
   document.getElementById('proveedorEstado').value = prov.estado;
@@ -135,24 +136,26 @@ window.editarProveedor = function(id) {
   openModal('modalProveedor');
 };
 
-window.eliminarProveedor = function(id) {
-  const prov = proveedoresData.find(p => p.id === id);
+window.eliminarProveedor = async function(id) {
+  const prov = proveedoresData.find(p => p.id == id);
   if (!prov) return;
   if (confirm(`¿Está seguro de eliminar al proveedor "${prov.empresa}"?`)) {
-    proveedoresData = proveedoresData.filter(p => p.id !== id);
-    saveProveedores();
-    renderProveedores();
-    showToast('Proveedor eliminado correctamente', 'danger');
+    try {
+      await apiRequest(`proveedores/?id=${id}`, { method: 'DELETE' });
+      showToast('Proveedor eliminado correctamente', 'danger');
+      await loadProveedores();
+    } catch (err) {
+      showToast(err.message, 'danger');
+    }
   }
 };
 
 const formProveedor = document.getElementById('formProveedor');
 if (formProveedor) {
-  formProveedor.addEventListener('submit', (e) => {
+  formProveedor.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idVal = document.getElementById('proveedorId').value;
     const provObj = {
-      id: idVal ? parseInt(idVal) : Date.now(),
       empresa: document.getElementById('proveedorEmpresa').value.trim(),
       contacto: document.getElementById('proveedorContacto').value.trim(),
       rfc: document.getElementById('proveedorRfc').value.trim().toUpperCase(),
@@ -163,18 +166,19 @@ if (formProveedor) {
       estado: document.getElementById('proveedorEstado').value
     };
 
-    if (idVal) {
-      const index = proveedoresData.findIndex(p => p.id === parseInt(idVal));
-      if (index !== -1) proveedoresData[index] = provObj;
-      showToast('Proveedor actualizado con éxito', 'success');
-    } else {
-      proveedoresData.unshift(provObj);
-      showToast('Nuevo proveedor registrado', 'success');
+    try {
+      if (idVal) {
+        await apiRequest(`proveedores/?id=${idVal}`, { method: 'PUT', body: JSON.stringify(provObj) });
+        showToast('Proveedor actualizado con éxito', 'success');
+      } else {
+        await apiRequest('proveedores/', { method: 'POST', body: JSON.stringify(provObj) });
+        showToast('Nuevo proveedor registrado', 'success');
+      }
+      closeModal('modalProveedor');
+      await loadProveedores();
+    } catch (err) {
+      showToast(err.message, 'danger');
     }
-
-    saveProveedores();
-    renderProveedores();
-    closeModal('modalProveedor');
   });
 }
 
@@ -187,5 +191,5 @@ if (filterProveedorCat) filterProveedorCat.addEventListener('change', renderProv
 const filterProveedorEst = document.getElementById('filterProveedorEstado');
 if (filterProveedorEst) filterProveedorEst.addEventListener('change', renderProveedores);
 
-// Inicializar renderizado
-renderProveedores();
+// Inicializar: cargar datos desde la API
+loadProveedores();

@@ -1,17 +1,18 @@
 // ==========================================
 // CLIENTES.JS - MÓDULO DE CLIENTES (CRUD & FILTROS)
+// Datos reales desde la API (SQL Server)
 // ==========================================
 
-let clientesData = JSON.parse(localStorage.getItem('refa_clientes')) || [
-  { id: 1, nombre: 'Taller Mecánico El Pistón Veloz', rfc: 'MEVC850412H81', telefono: '55 4123 8901', email: 'el.piston@gmail.com', tipo: 'Taller Mecánico', estado: 'Activo' },
-  { id: 2, nombre: 'Auto Servicio Continental S.A.', rfc: 'ASC920914PT5', telefono: '55 8899 1122', email: 'contacto@continental-auto.mx', tipo: 'Taller Mecánico', estado: 'Activo' },
-  { id: 3, nombre: 'Lic. Fernando Morales Ochoa', rfc: 'MOOF780210K12', telefono: '55 6721 3490', email: 'f.morales@outlook.com', tipo: 'Particular', estado: 'Activo' },
-  { id: 4, nombre: 'Flotillas y Transportes del Centro', rfc: 'FTC050119LM9', telefono: '55 3300 4455', email: 'mantenimiento@flotillascentro.com', tipo: 'Flotilla', estado: 'Activo' },
-  { id: 5, nombre: 'Refacciones y Servicios La Curva', rfc: 'RSLC120304Q90', telefono: '55 9012 3344', email: 'lacurva.talleres@yahoo.com', tipo: 'Taller Mecánico', estado: 'Inactivo' }
-];
+let clientesData = [];
 
-function saveClientes() {
-  localStorage.setItem('refa_clientes', JSON.stringify(clientesData));
+async function loadClientes() {
+  try {
+    const json = await apiRequest('clientes/');
+    clientesData = json.data;
+    renderClientes();
+  } catch (err) {
+    showToast(err.message, 'danger');
+  }
 }
 
 function renderClientes() {
@@ -27,10 +28,10 @@ function renderClientes() {
   const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
 
   const filtered = clientesData.filter(c => {
-    const matchesSearch = c.nombre.toLowerCase().includes(search) || 
-                          c.rfc.toLowerCase().includes(search) || 
-                          c.telefono.includes(search) || 
-                          c.email.toLowerCase().includes(search);
+    const matchesSearch = c.nombre.toLowerCase().includes(search) ||
+                          (c.rfc || '').toLowerCase().includes(search) ||
+                          (c.telefono || '').includes(search) ||
+                          (c.email || '').toLowerCase().includes(search);
     const matchesTipo = filterTipo === 'todos' || c.tipo === filterTipo;
     const matchesEstado = filterEstado === 'todos' || c.estado === filterEstado;
     return matchesSearch && matchesTipo && matchesEstado;
@@ -68,10 +69,10 @@ function renderClientes() {
         </td>
         <td>
           <div class="action-buttons-group" style="justify-content: center;">
-            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarCliente(${c.id})">
+            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarCliente('${c.id}')">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarCliente(${c.id})">
+            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarCliente('${c.id}')">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -109,7 +110,7 @@ if (btnOpenClienteModal) {
 }
 
 window.editarCliente = function(id) {
-  const cliente = clientesData.find(c => c.id === id);
+  const cliente = clientesData.find(c => c.id == id);
   if (!cliente) return;
   document.getElementById('clienteId').value = cliente.id;
   document.getElementById('clienteNombre').value = cliente.nombre;
@@ -122,24 +123,26 @@ window.editarCliente = function(id) {
   openModal('modalCliente');
 };
 
-window.eliminarCliente = function(id) {
-  const cliente = clientesData.find(c => c.id === id);
+window.eliminarCliente = async function(id) {
+  const cliente = clientesData.find(c => c.id == id);
   if (!cliente) return;
   if (confirm(`¿Está seguro de eliminar a "${cliente.nombre}"?`)) {
-    clientesData = clientesData.filter(c => c.id !== id);
-    saveClientes();
-    renderClientes();
-    showToast('Cliente eliminado del catálogo', 'danger');
+    try {
+      await apiRequest(`clientes/?id=${id}`, { method: 'DELETE' });
+      showToast('Cliente eliminado del catálogo', 'danger');
+      await loadClientes();
+    } catch (err) {
+      showToast(err.message, 'danger');
+    }
   }
 };
 
 const formCliente = document.getElementById('formCliente');
 if (formCliente) {
-  formCliente.addEventListener('submit', (e) => {
+  formCliente.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idVal = document.getElementById('clienteId').value;
     const clienteObj = {
-      id: idVal ? parseInt(idVal) : Date.now(),
       nombre: document.getElementById('clienteNombre').value.trim(),
       tipo: document.getElementById('clienteTipo').value,
       rfc: document.getElementById('clienteRfc').value.trim().toUpperCase(),
@@ -148,18 +151,19 @@ if (formCliente) {
       estado: document.getElementById('clienteEstado').value
     };
 
-    if (idVal) {
-      const index = clientesData.findIndex(c => c.id === parseInt(idVal));
-      if (index !== -1) clientesData[index] = clienteObj;
-      showToast('Cliente actualizado con éxito', 'success');
-    } else {
-      clientesData.unshift(clienteObj);
-      showToast('Nuevo cliente registrado', 'success');
+    try {
+      if (idVal) {
+        await apiRequest(`clientes/?id=${idVal}`, { method: 'PUT', body: JSON.stringify(clienteObj) });
+        showToast('Cliente actualizado con éxito', 'success');
+      } else {
+        await apiRequest('clientes/', { method: 'POST', body: JSON.stringify(clienteObj) });
+        showToast('Nuevo cliente registrado', 'success');
+      }
+      closeModal('modalCliente');
+      await loadClientes();
+    } catch (err) {
+      showToast(err.message, 'danger');
     }
-
-    saveClientes();
-    renderClientes();
-    closeModal('modalCliente');
   });
 }
 
@@ -172,5 +176,5 @@ if (filterClienteTipo) filterClienteTipo.addEventListener('change', renderClient
 const filterClienteEstado = document.getElementById('filterClienteEstado');
 if (filterClienteEstado) filterClienteEstado.addEventListener('change', renderClientes);
 
-// Inicializar renderizado
-renderClientes();
+// Inicializar: cargar datos desde la API
+loadClientes();

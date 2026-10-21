@@ -1,19 +1,18 @@
 // ==========================================
 // USUARIOS.JS - MÓDULO DE USUARIOS (CRUD & FILTROS)
+// Datos reales desde la API (SQL Server)
 // ==========================================
 
-let usuariosData = JSON.parse(localStorage.getItem('refa_usuarios')) || [
-  { id: 1, nombre: 'Javier Rodríguez', username: 'jrodriguez', email: 'j.rodriguez@refaccionaria.com', rol: 'Administrador', ultimoAcceso: 'Hoy, 10:45 AM', estado: 'Activo' },
-  { id: 2, nombre: 'Ana Karen Morales', username: 'amorales', email: 'ana.morales@refaccionaria.com', rol: 'Cajero', ultimoAcceso: 'Hoy, 09:12 AM', estado: 'Activo' },
-  { id: 3, nombre: 'Miguel Ángel Torres', username: 'mtorres', email: 'miguel.torres@refaccionaria.com', rol: 'Cajero', ultimoAcceso: 'Ayer, 06:30 PM', estado: 'Activo' },
-  { id: 4, nombre: 'Claudia Beatriz Soto', username: 'csoto', email: 'claudia.soto@refaccionaria.com', rol: 'Cajero', ultimoAcceso: '28/09/2026', estado: 'Inactivo' }
-];
+let usuariosData = [];
 
-// Asegurar compatibilidad si existían usuarios guardados con rol Almacenista retirado
-usuariosData = usuariosData.map(u => u.rol === 'Almacenista' ? { ...u, rol: 'Cajero' } : u);
-
-function saveUsuarios() {
-  localStorage.setItem('refa_usuarios', JSON.stringify(usuariosData));
+async function loadUsuarios() {
+  try {
+    const json = await apiRequest('usuarios/');
+    usuariosData = json.data;
+    renderUsuarios();
+  } catch (err) {
+    showToast(err.message, 'danger');
+  }
 }
 
 function renderUsuarios() {
@@ -29,8 +28,8 @@ function renderUsuarios() {
   const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
 
   const filtered = usuariosData.filter(u => {
-    const matchesSearch = u.nombre.toLowerCase().includes(search) || 
-                          u.username.toLowerCase().includes(search) || 
+    const matchesSearch = u.nombre.toLowerCase().includes(search) ||
+                          u.username.toLowerCase().includes(search) ||
                           u.email.toLowerCase().includes(search);
     const matchesRol = filterRol === 'todos' || u.rol === filterRol;
     const matchesEstado = filterEstado === 'todos' || u.estado === filterEstado;
@@ -66,7 +65,7 @@ function renderUsuarios() {
           </span>
         </td>
         <td>
-          <span style="font-size: 13px; color: #64748b;">${u.ultimoAcceso || 'Reciente'}</span>
+          <span style="font-size: 13px; color: #64748b;">${u.ultimoAcceso || 'Nunca'}</span>
         </td>
         <td>
           <span class="badge-tag ${u.estado === 'Activo' ? 'badge-active' : 'badge-inactive'}">
@@ -75,10 +74,10 @@ function renderUsuarios() {
         </td>
         <td>
           <div class="action-buttons-group" style="justify-content: center;">
-            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarUsuario(${u.id})">
+            <button type="button" class="btn-icon-action btn-action-edit" title="Editar" onclick="editarUsuario('${u.id}')">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarUsuario(${u.id})">
+            <button type="button" class="btn-icon-action btn-action-delete" title="Eliminar" onclick="eliminarUsuario('${u.id}')">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -120,7 +119,7 @@ if (btnOpenUsuarioModal) {
 }
 
 window.editarUsuario = function(id) {
-  const usr = usuariosData.find(u => u.id === id);
+  const usr = usuariosData.find(u => u.id == id);
   if (!usr) return;
   document.getElementById('usuarioId').value = usr.id;
   document.getElementById('usuarioNombre').value = usr.nombre;
@@ -136,44 +135,47 @@ window.editarUsuario = function(id) {
   openModal('modalUsuario');
 };
 
-window.eliminarUsuario = function(id) {
-  const usr = usuariosData.find(u => u.id === id);
+window.eliminarUsuario = async function(id) {
+  const usr = usuariosData.find(u => u.id == id);
   if (!usr) return;
   if (confirm(`¿Está seguro de eliminar al usuario "${usr.nombre}" (@${usr.username})?`)) {
-    usuariosData = usuariosData.filter(u => u.id !== id);
-    saveUsuarios();
-    renderUsuarios();
-    showToast('Usuario eliminado del sistema', 'danger');
+    try {
+      await apiRequest(`usuarios/?id=${id}`, { method: 'DELETE' });
+      showToast('Usuario eliminado del sistema', 'danger');
+      await loadUsuarios();
+    } catch (err) {
+      showToast(err.message, 'danger');
+    }
   }
 };
 
 const formUsuario = document.getElementById('formUsuario');
 if (formUsuario) {
-  formUsuario.addEventListener('submit', (e) => {
+  formUsuario.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idVal = document.getElementById('usuarioId').value;
     const usrObj = {
-      id: idVal ? parseInt(idVal) : Date.now(),
       nombre: document.getElementById('usuarioNombre').value.trim(),
       username: document.getElementById('usuarioUsername').value.trim().toLowerCase(),
       email: document.getElementById('usuarioEmail').value.trim(),
       rol: document.getElementById('usuarioRol').value,
-      ultimoAcceso: idVal ? (usuariosData.find(u => u.id === parseInt(idVal))?.ultimoAcceso || 'Hoy') : 'Nunca',
-      estado: document.getElementById('usuarioEstado').value
+      estado: document.getElementById('usuarioEstado').value,
+      password: document.getElementById('usuarioPassword').value
     };
 
-    if (idVal) {
-      const index = usuariosData.findIndex(u => u.id === parseInt(idVal));
-      if (index !== -1) usuariosData[index] = usrObj;
-      showToast('Usuario actualizado con éxito', 'success');
-    } else {
-      usuariosData.push(usrObj);
-      showToast('Nuevo usuario creado exitosamente', 'success');
+    try {
+      if (idVal) {
+        await apiRequest(`usuarios/?id=${idVal}`, { method: 'PUT', body: JSON.stringify(usrObj) });
+        showToast('Usuario actualizado con éxito', 'success');
+      } else {
+        await apiRequest('usuarios/', { method: 'POST', body: JSON.stringify(usrObj) });
+        showToast('Nuevo usuario creado exitosamente', 'success');
+      }
+      closeModal('modalUsuario');
+      await loadUsuarios();
+    } catch (err) {
+      showToast(err.message, 'danger');
     }
-
-    saveUsuarios();
-    renderUsuarios();
-    closeModal('modalUsuario');
   });
 }
 
@@ -186,5 +188,5 @@ if (filterUsuarioRol) filterUsuarioRol.addEventListener('change', renderUsuarios
 const filterUsuarioEstado = document.getElementById('filterUsuarioEstado');
 if (filterUsuarioEstado) filterUsuarioEstado.addEventListener('change', renderUsuarios);
 
-// Inicializar renderizado
-renderUsuarios();
+// Inicializar: cargar datos desde la API
+loadUsuarios();

@@ -1,3 +1,6 @@
+<?php
+
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,6 +16,15 @@
   
   <!-- Estilos del Sistema -->
   <link rel="stylesheet" href="css/styles.css">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('refa_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark-mode');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -121,11 +133,19 @@
       </li>
     </ul>
 
-    <!-- BOTÓN CERRAR SESIÓN / SALIR -->
+    <!-- BOTÓN MODO OSCURO / CLARO Y SALIR -->
     <div class="sidebar-footer">
+      <button type="button" class="btn-theme-toggle" id="btnThemeToggle" data-title="Modo Oscuro" title="Cambiar a Modo Oscuro">
+        <span class="theme-icon">
+          <i class="fa-solid fa-moon" id="themeToggleIcon"></i>
+        </span>
+        <span class="theme-text" id="themeToggleText">Modo Oscuro</span>
+      </button>
       <a href="#salir" class="btn-logout" id="btnLogout" data-title="Cerrar sesión">
-        <span class="logout-indicator"></span>
-        <span class="logout-text">Salir</span>
+        <span class="logout-icon">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </span>
+        <span class="logout-text">Cerrar sesión</span>
       </a>
     </div>
 
@@ -712,11 +732,15 @@
   </div>
 
   <!-- SCRIPTS MODULARES -->
+  <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script src="js/ventas.js"></script>
-  <script src="js/clientes.js"></script>
-  <script src="js/proveedores.js"></script>
-  <script src="js/usuarios.js"></script>
+  <script src="js/clientes.js?v=2"></script>
+  <script src="js/proveedores.js?v=2"></script>
+  <script src="js/usuarios.js?v=2"></script>
 
 </body>
 </html>
+
+
+

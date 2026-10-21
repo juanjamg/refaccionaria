@@ -135,3 +135,64 @@ document.addEventListener('keydown', (e) => {
     document.querySelectorAll('.custom-modal-overlay.open').forEach(m => m.classList.remove('open'));
   }
 });
+
+// ==========================================
+// CONTROL DE MODO OSCURO / MODO CLARO
+// ==========================================
+const btnThemeToggle = document.getElementById('btnThemeToggle');
+const themeToggleIcon = document.getElementById('themeToggleIcon');
+const themeToggleText = document.getElementById('themeToggleText');
+
+function applyTheme(theme, notify = false) {
+  const isDark = theme === 'dark';
+
+  if (isDark) {
+    document.documentElement.classList.add('dark-mode');
+    document.body.classList.add('dark-mode');
+    if (themeToggleIcon) themeToggleIcon.className = 'fa-solid fa-sun';
+    if (themeToggleText) themeToggleText.innerText = 'Modo Claro';
+    if (btnThemeToggle) {
+      btnThemeToggle.setAttribute('data-title', 'Modo Claro');
+      btnThemeToggle.setAttribute('title', 'Cambiar a Modo Claro');
+    }
+  } else {
+    document.documentElement.classList.remove('dark-mode');
+    document.body.classList.remove('dark-mode');
+    if (themeToggleIcon) themeToggleIcon.className = 'fa-solid fa-moon';
+    if (themeToggleText) themeToggleText.innerText = 'Modo Oscuro';
+    if (btnThemeToggle) {
+      btnThemeToggle.setAttribute('data-title', 'Modo Oscuro');
+      btnThemeToggle.setAttribute('title', 'Cambiar a Modo Oscuro');
+    }
+  }
+
+  localStorage.setItem('refa_theme', isDark ? 'dark' : 'light');
+
+  if (notify && typeof showToast === 'function') {
+    showToast(isDark ? 'Modo oscuro activado 🌙' : 'Modo claro activado ☀️', 'success');
+  }
+}
+
+// Inicializar tema al cargar la página
+const storedTheme = localStorage.getItem('refa_theme');
+const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const initialTheme = storedTheme ? storedTheme : (systemPrefersDark ? 'dark' : 'light');
+applyTheme(initialTheme, false);
+
+// Evento de click para alternar tema
+if (btnThemeToggle) {
+  btnThemeToggle.addEventListener('click', () => {
+    const isCurrentlyDark = document.body.classList.contains('dark-mode') || document.documentElement.classList.contains('dark-mode');
+    applyTheme(isCurrentlyDark ? 'light' : 'dark', true);
+  });
+}
+
+// Escuchar cambios de preferencia del sistema si el usuario no ha fijado una manualmente
+if (window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem('refa_theme')) {
+      applyTheme(e.matches ? 'dark' : 'light', false);
+    }
+  });
+}
+
