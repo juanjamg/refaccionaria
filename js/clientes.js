@@ -8,12 +8,13 @@ let clientesData = [];
 async function loadClientes() {
   try {
     const json = await apiRequest('clientes/');
-    clientesData = json.data;
+    clientesData = Array.isArray(json.data) ? json.data : [];
     renderClientes();
   } catch (err) {
     showToast(err.message, 'danger');
   }
 }
+window.loadClientes = loadClientes;
 
 function renderClientes() {
   const tbody = document.getElementById('tbodyClientes');

@@ -56,6 +56,15 @@ function setActiveModule(targetName) {
   // Mostrar la sección correspondiente
   if (sections[targetName]) {
     sections[targetName].classList.remove('hidden');
+
+    // Recargar datos frescos si el módulo cuenta con función de carga
+    if (targetName === 'proveedores' && typeof window.loadProveedores === 'function') {
+      window.loadProveedores();
+    } else if (targetName === 'clientes' && typeof window.loadClientes === 'function') {
+      window.loadClientes();
+    } else if (targetName === 'usuarios' && typeof window.loadUsuarios === 'function') {
+      window.loadUsuarios();
+    }
   } else if (sections.other) {
     sections.other.classList.remove('hidden');
     const titleText = (activeLink && (activeLink.getAttribute('data-title') || activeLink.innerText.trim())) || targetName;
@@ -63,13 +72,31 @@ function setActiveModule(targetName) {
     if (contentBadge) contentBadge.innerText = `Sección activa: ${titleText}`;
   }
 }
+window.setActiveModule = setActiveModule;
 
 navLinks.forEach(link => {
   link.addEventListener('click', (e) => {
     e.preventDefault();
     const target = link.getAttribute('href').replace('#', '').toLowerCase();
+    if (window.location.hash !== `#${target}`) {
+      window.history.pushState(null, '', `#${target}`);
+    }
     setActiveModule(target);
   });
+});
+
+// Soporte para navegación directa o recarga con hash (ej. #proveedores)
+window.addEventListener('DOMContentLoaded', () => {
+  const initialModule = (window.location.hash || '').replace('#', '').toLowerCase();
+  if (initialModule && sections[initialModule]) {
+    setActiveModule(initialModule);
+  }
+});
+window.addEventListener('hashchange', () => {
+  const hashModule = (window.location.hash || '').replace('#', '').toLowerCase();
+  if (hashModule && sections[hashModule]) {
+    setActiveModule(hashModule);
+  }
 });
 
 // Acción para el botón salir
@@ -169,7 +196,7 @@ function applyTheme(theme, notify = false) {
   localStorage.setItem('refa_theme', isDark ? 'dark' : 'light');
 
   if (notify && typeof showToast === 'function') {
-    showToast(isDark ? 'Modo oscuro activado 🌙' : 'Modo claro activado ☀️', 'success');
+    showToast(isDark ? 'Modo Juanja activado 🌙' : 'Modo Liz activado ☀️', 'success');
   }
 }
 

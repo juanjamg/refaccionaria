@@ -106,8 +106,9 @@ try {
             jsonResponse(false, null, 'Método no permitido', 405);
     }
 } catch (PDOException $e) {
+    error_log('Error API proveedores: ' . $e->getMessage());
     if (str_contains($e->getMessage(), 'REFERENCE constraint')) {
         jsonResponse(false, null, 'No se puede eliminar: el proveedor tiene productos asociados', 409);
     }
-    jsonResponse(false, null, 'Error en la base de datos', 500);
+    jsonResponse(false, null, 'Error en la base de datos: ' . $e->getMessage(), 500);
 }

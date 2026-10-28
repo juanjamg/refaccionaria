@@ -8,12 +8,13 @@ let usuariosData = [];
 async function loadUsuarios() {
   try {
     const json = await apiRequest('usuarios/');
-    usuariosData = json.data;
+    usuariosData = Array.isArray(json.data) ? json.data : [];
     renderUsuarios();
   } catch (err) {
     showToast(err.message, 'danger');
   }
 }
+window.loadUsuarios = loadUsuarios;
 
 function renderUsuarios() {
   const tbody = document.getElementById('tbodyUsuarios');

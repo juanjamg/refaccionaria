@@ -6,14 +6,25 @@
 let proveedoresData = [];
 
 async function loadProveedores() {
+  const tbody = document.getElementById('tbodyProveedores');
   try {
     const json = await apiRequest('proveedores/');
-    proveedoresData = json.data;
+    proveedoresData = Array.isArray(json.data) ? json.data : [];
     renderProveedores();
   } catch (err) {
-    showToast(err.message, 'danger');
+    console.error('Error cargando proveedores:', err);
+    if (tbody && (!proveedoresData || proveedoresData.length === 0)) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #ef4444;">
+        <i class="fa-solid fa-triangle-exclamation"></i> Error al cargar proveedores: ${err.message || 'Error de conexión'}.
+        <br><button type="button" class="btn-primary-action" style="margin-top: 10px; display: inline-flex;" onclick="loadProveedores()">
+          <i class="fa-solid fa-rotate-right"></i> Reintentar
+        </button>
+      </td></tr>`;
+    }
+    showToast(err.message || 'Error al conectar con la base de datos', 'danger');
   }
 }
+window.loadProveedores = loadProveedores;
 
 function renderProveedores() {
   const tbody = document.getElementById('tbodyProveedores');
@@ -23,18 +34,26 @@ function renderProveedores() {
 
   if (!tbody) return;
 
-  const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-  const filterCat = filterCatSelect ? filterCatSelect.value : 'todos';
-  const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
+  const search = searchInput ? (searchInput.value || '').toLowerCase().trim() : '';
+  const filterCat = filterCatSelect ? (filterCatSelect.value || 'todos') : 'todos';
+  const filterEstado = filterEstadoSelect ? (filterEstadoSelect.value || 'todos') : 'todos';
 
   const filtered = proveedoresData.filter(p => {
-    const matchesSearch = p.empresa.toLowerCase().includes(search) ||
-                          (p.contacto || '').toLowerCase().includes(search) ||
-                          (p.rfc || '').toLowerCase().includes(search) ||
-                          (p.telefono || '').includes(search) ||
-                          (p.categoria || '').toLowerCase().includes(search);
-    const matchesCat = filterCat === 'todos' || p.categoria === filterCat;
-    const matchesEstado = filterEstado === 'todos' || p.estado === filterEstado;
+    const empresa = String(p.empresa || '').toLowerCase();
+    const contacto = String(p.contacto || '').toLowerCase();
+    const rfc = String(p.rfc || '').toLowerCase();
+    const telefono = String(p.telefono || '').toLowerCase();
+    const categoria = String(p.categoria || '').toLowerCase();
+
+    const matchesSearch = !search ||
+                          empresa.includes(search) ||
+                          contacto.includes(search) ||
+                          rfc.includes(search) ||
+                          telefono.includes(search) ||
+                          categoria.includes(search);
+
+    const matchesCat = filterCat === 'todos' || (p.categoria || '') === filterCat;
+    const matchesEstado = filterEstado === 'todos' || (p.estado || '') === filterEstado;
     return matchesSearch && matchesCat && matchesEstado;
   });
 
@@ -44,14 +63,15 @@ function renderProveedores() {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">No se encontraron proveedores con los filtros aplicados.</td></tr>`;
   } else {
     filtered.forEach(p => {
-      const initials = p.empresa.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      const words = String(p.empresa || '').trim().split(/\s+/).filter(Boolean);
+      const initials = (words.slice(0, 2).map(w => w[0]).join('') || 'PR').toUpperCase();
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
           <div class="avatar-cell">
             <div class="circle-avatar" style="background: #ffedd5; color: #ea580c;">${initials}</div>
             <div>
-              <div class="item-main-title">${p.empresa}</div>
+              <div class="item-main-title">${p.empresa || 'Sin nombre'}</div>
               <div class="item-sub-title"><i class="fa-regular fa-envelope"></i> ${p.email || 'Sin correo'}</div>
             </div>
           </div>
@@ -61,7 +81,7 @@ function renderProveedores() {
         </td>
         <td><strong>${p.rfc || 'Sin RFC'}</strong></td>
         <td>
-          <div><i class="fa-solid fa-phone" style="color: #64748b; font-size: 11px;"></i> ${p.telefono}</div>
+          <div><i class="fa-solid fa-phone" style="color: #64748b; font-size: 11px;"></i> ${p.telefono || 'Sin teléfono'}</div>
         </td>
         <td>
           <span class="badge-tag" style="background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
@@ -69,13 +89,13 @@ function renderProveedores() {
           </span>
         </td>
         <td>
-          <span style="font-weight: 700; color: ${p.creditoDias > 0 ? '#1e293b' : '#64748b'};">
-            ${p.creditoDias > 0 ? p.creditoDias + ' días' : 'Contado'}
+          <span style="font-weight: 700; color: ${(p.creditoDias || 0) > 0 ? '#1e293b' : '#64748b'};">
+            ${(p.creditoDias || 0) > 0 ? p.creditoDias + ' días' : 'Contado'}
           </span>
         </td>
         <td>
           <span class="badge-tag ${p.estado === 'Activo' ? 'badge-active' : 'badge-inactive'}">
-            <i class="fa-solid ${p.estado === 'Activo' ? 'fa-check' : 'fa-ban'}"></i> ${p.estado}
+            <i class="fa-solid ${p.estado === 'Activo' ? 'fa-check' : 'fa-ban'}"></i> ${p.estado || 'Activo'}
           </span>
         </td>
         <td>
@@ -104,8 +124,9 @@ function renderProveedores() {
   if (statActivos) statActivos.innerText = proveedoresData.filter(p => p.estado === 'Activo').length;
 
   const statCredito = document.getElementById('statProveedoresCredito');
-  if (statCredito) statCredito.innerText = proveedoresData.filter(p => p.creditoDias > 0).length;
+  if (statCredito) statCredito.innerText = proveedoresData.filter(p => (p.creditoDias || 0) > 0).length;
 }
+window.renderProveedores = renderProveedores;
 
 const btnOpenProveedorModal = document.getElementById('btnOpenProveedorModal');
 if (btnOpenProveedorModal) {

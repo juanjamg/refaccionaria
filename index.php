@@ -390,10 +390,10 @@
         <div class="table-toolbar-bar">
           <div class="search-input-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchProveedores" placeholder="Buscar por distribuidora, contacto, refacciones o RFC...">
+            <input type="text" id="searchProveedores" placeholder="Buscar por distribuidora, contacto, refacciones o RFC..." autocomplete="off">
           </div>
           <div class="filter-controls-group">
-            <select id="filterProveedorCategoria" class="filter-select-input">
+            <select id="filterProveedorCategoria" class="filter-select-input" autocomplete="off">
               <option value="todos">Todas las categorías</option>
               <option value="Suspensión y Dirección">Suspensión y Dirección</option>
               <option value="Frenos">Frenos</option>
@@ -402,7 +402,7 @@
               <option value="Lubricantes y Filtros">Lubricantes y Filtros</option>
               <option value="Colisión y Accesorios">Colisión y Accesorios</option>
             </select>
-            <select id="filterProveedorEstado" class="filter-select-input">
+            <select id="filterProveedorEstado" class="filter-select-input" autocomplete="off">
               <option value="todos">Todos los estados</option>
               <option value="Activo">Activos</option>
               <option value="Inactivo">Inactivos</option>
@@ -732,12 +732,12 @@
   </div>
 
   <!-- SCRIPTS MODULARES -->
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/ventas.js"></script>
-  <script src="js/clientes.js?v=2"></script>
-  <script src="js/proveedores.js?v=2"></script>
-  <script src="js/usuarios.js?v=2"></script>
+  <script src="js/api.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/ventas.js?v=3"></script>
+  <script src="js/clientes.js?v=3"></script>
+  <script src="js/proveedores.js?v=3"></script>
+  <script src="js/usuarios.js?v=3"></script>
 
 </body>
 </html>
