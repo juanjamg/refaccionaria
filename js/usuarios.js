@@ -45,6 +45,9 @@ function renderUsuarios() {
       const words = String(u.nombre || '').trim().split(/\s+/).filter(Boolean);
       const initials = (words.slice(0, 2).map(w => w[0]).join('') || 'US').toUpperCase();
       const esActivo = u.estado === 'Activo' || u.status === '1';
+      const esAdmin = (u.rol && u.rol.toLowerCase().includes('admin')) || 
+                      (u.username && u.username.toLowerCase() === 'admin') || 
+                      (u.nombre && u.nombre.toLowerCase().includes('administrador'));
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -58,8 +61,13 @@ function renderUsuarios() {
           </div>
         </td>
         <td>
-          <div style="font-weight: 600; color: #1e293b;">
+          <div style="font-weight: 600; color: var(--text-dark);">
             <i class="fa-solid fa-at" style="color: #6366f1; font-size: 11px;"></i> ${u.username}
+          </div>
+          <div style="margin-top: 4px;">
+            <span class="badge-tag ${esAdmin ? 'badge-role-admin' : 'badge-role-cashier'}">
+              <i class="fa-solid ${esAdmin ? 'fa-shield-halved' : 'fa-cash-register'}" style="font-size: 10px;"></i> ${esAdmin ? 'Administrador' : 'Cajero / Mostrador'}
+            </span>
           </div>
         </td>
         <td>
@@ -88,6 +96,19 @@ function renderUsuarios() {
 
   const statTotal = document.getElementById('statTotalUsuarios');
   if (statTotal) statTotal.innerText = usuariosData.length;
+
+  const adminCount = usuariosData.filter(u => {
+    const rol = String(u.rol || '').toLowerCase();
+    const username = String(u.username || '').toLowerCase();
+    const nombre = String(u.nombre || '').toLowerCase();
+    return rol.includes('admin') || username === 'admin' || username.startsWith('admin') || nombre.includes('administrador');
+  }).length;
+
+  const statAdmin = document.getElementById('statUsuariosAdmin');
+  if (statAdmin) statAdmin.innerText = adminCount;
+
+  const statCajeros = document.getElementById('statUsuariosCajeros');
+  if (statCajeros) statCajeros.innerText = Math.max(0, usuariosData.length - adminCount);
 
   const statActivos = document.getElementById('statUsuariosActivos');
   if (statActivos) statActivos.innerText = usuariosData.filter(u => u.estado === 'Activo' || u.status === '1').length;
@@ -145,6 +166,10 @@ window.editarUsuario = function(id) {
 window.eliminarUsuario = async function(id) {
   const usuario = usuariosData.find(u => u.id == id);
   if (!usuario) return;
+  if ((usuario.username || '').toLowerCase() === 'admin') {
+    showToast('El usuario principal "admin" no puede ser eliminado.', 'danger');
+    return;
+  }
   if (confirm(`¿Está seguro de eliminar al usuario "${usuario.nombre}" (@${usuario.username})?`)) {
     try {
       await apiRequest(`usuarios/?id=${id}`, { method: 'DELETE' });

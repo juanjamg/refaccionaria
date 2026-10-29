@@ -675,8 +675,8 @@
   <script src="js/app.js?v=3"></script>
   <script src="js/ventas.js?v=3"></script>
   <script src="js/clientes.js?v=3"></script>
-  <script src="js/proveedores.js?v=3"></script>
-  <script src="js/usuarios.js?v=3"></script>
+  <script src="js/proveedores.js?v=4"></script>
+  <script src="js/usuarios.js?v=4"></script>
 
 </body>
 </html>

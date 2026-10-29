@@ -73,14 +73,14 @@ function renderProveedores() {
           </div>
         </td>
         <td>
-          <div style="font-weight: 700; color: #1e293b;"><i class="fa-regular fa-user" style="color: #64748b; font-size: 11px;"></i> ${p.contacto || 'Sin contacto'}</div>
+          <div style="font-weight: 700; color: var(--text-dark);"><i class="fa-regular fa-user" style="color: var(--text-muted); font-size: 11px;"></i> ${p.contacto || 'Sin contacto'}</div>
         </td>
         <td><strong>${p.rfc || 'Sin RFC'}</strong></td>
         <td>
-          <div><i class="fa-solid fa-phone" style="color: #64748b; font-size: 11px;"></i> ${p.telefono || 'Sin teléfono'}</div>
+          <div><i class="fa-solid fa-phone" style="color: var(--text-muted); font-size: 11px;"></i> ${p.telefono || 'Sin teléfono'}</div>
         </td>
         <td>
-          <div style="font-size: 12px; color: #475569; max-width: 280px; line-height: 1.4;">
+          <div style="font-size: 12.5px; color: var(--text-muted); max-width: 280px; line-height: 1.4;">
             <i class="fa-solid fa-location-dot" style="color: #ea580c; font-size: 11px;"></i> ${direccionCompleta}
           </div>
         </td>

@@ -1449,6 +1449,8 @@ body,
 
 /* Variables para Modo Oscuro */
 :root.dark-mode,
+html.dark-mode,
+.dark-mode,
 body.dark-mode {
   --bg-app: #0b1320;
   --sidebar-bg: #111c2e;
@@ -1749,6 +1751,11 @@ body.dark-mode {
 
 .dark-mode .crud-table tbody td {
   border-bottom-color: #1b2940;
+  color: #e2e8f0;
+}
+
+.dark-mode .crud-table tbody td div:not(.circle-avatar):not(.action-buttons-group) {
+
   color: #e2e8f0;
 }
 
