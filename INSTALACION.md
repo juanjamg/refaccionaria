@@ -85,16 +85,17 @@ Todo esto se hace **en la máquina donde corre SQL Server** (VM o PC):
 
 ## 6. Crear la base de datos
 
-1. Copia `database/schema.sql` del proyecto a la máquina con SQL Server.
-2. Ábrelo en **SQL Server Management Studio (SSMS)** y ejecútalo completo (F5).
-3. Verifica:
+1. Abre `database/script.sql` en **SQL Server Management Studio (SSMS)** y ejecútalo completo (F5).
+2. El script creará la base de datos `REFACCIONARIA`, sus 18 tablas, sus 27 Procedimientos Almacenados y los datos iniciales de prueba.
+3. Verifica en SSMS:
    ```sql
-   USE refaccionaria_db;
-   SELECT name FROM sys.tables;   -- 7 tablas
-   SELECT COUNT(*) FROM clientes; -- 5 registros semilla
+   USE REFACCIONARIA;
+   SELECT name FROM sys.tables;   -- 18 tablas
+   SELECT COUNT(*) FROM Clientes; -- Registros semilla
+   SELECT * FROM Usuario;         -- Usuario 'admin'
    ```
 
-**Credenciales de los usuarios semilla**: cualquier username (`jrodriguez`, `amorales`, `mtorres`) con contraseña `admin123`.
+**Credenciales del usuario inicial**: usuario `admin` con contraseña `admin123`.
 
 ---
 
@@ -103,9 +104,9 @@ Todo esto se hace **en la máquina donde corre SQL Server** (VM o PC):
 1. Copia/clona el proyecto en `C:\xampp\htdocs\refa`.
 2. Edita `api\config\db.php` con los datos de TU servidor SQL:
    ```php
-   define('DB_HOST', '10.10.214.107'); // IP de la máquina con SQL Server
+   define('DB_HOST', '192.168.8.100'); // IP de la máquina con SQL Server (o localhost)
    define('DB_PORT', '1433');
-   define('DB_NAME', 'refaccionaria_db');
+   define('DB_NAME', 'REFACCIONARIA');  // Base de datos escolar de script.sql
    define('DB_USER', 'sa');
    define('DB_PASS', '<tu_password>');
    ```

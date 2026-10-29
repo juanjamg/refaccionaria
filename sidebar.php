@@ -290,21 +290,7 @@
         <div class="table-toolbar-bar">
           <div class="search-input-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchClientes" placeholder="Buscar por nombre, taller, RFC, teléfono o correo...">
-          </div>
-          <div class="filter-controls-group">
-            <select id="filterClienteTipo" class="filter-select-input">
-              <option value="todos">Todos los tipos</option>
-              <option value="Taller Mecánico">Taller Mecánico</option>
-              <option value="Particular">Particular</option>
-              <option value="Mayorista">Mayorista</option>
-              <option value="Flotilla">Flotilla</option>
-            </select>
-            <select id="filterClienteEstado" class="filter-select-input">
-              <option value="todos">Todos los estados</option>
-              <option value="Activo">Activos</option>
-              <option value="Inactivo">Inactivos</option>
-            </select>
+            <input type="text" id="searchClientes" placeholder="Buscar por cliente, RFC, calle, número o ciudad...">
           </div>
         </div>
 
@@ -314,9 +300,8 @@
               <tr>
                 <th>Cliente / Razón Social</th>
                 <th>RFC</th>
-                <th>Contacto / Teléfono</th>
-                <th>Correo Electrónico</th>
-                <th>Estado</th>
+                <th>Dirección</th>
+                <th>Ciudad / C.P.</th>
                 <th style="text-align: center;">Acciones</th>
               </tr>
             </thead>
@@ -390,23 +375,7 @@
         <div class="table-toolbar-bar">
           <div class="search-input-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchProveedores" placeholder="Buscar por distribuidora, contacto, refacciones o RFC..." autocomplete="off">
-          </div>
-          <div class="filter-controls-group">
-            <select id="filterProveedorCategoria" class="filter-select-input" autocomplete="off">
-              <option value="todos">Todas las categorías</option>
-              <option value="Suspensión y Dirección">Suspensión y Dirección</option>
-              <option value="Frenos">Frenos</option>
-              <option value="Motor">Motor</option>
-              <option value="Eléctrico">Eléctrico</option>
-              <option value="Lubricantes y Filtros">Lubricantes y Filtros</option>
-              <option value="Colisión y Accesorios">Colisión y Accesorios</option>
-            </select>
-            <select id="filterProveedorEstado" class="filter-select-input" autocomplete="off">
-              <option value="todos">Todos los estados</option>
-              <option value="Activo">Activos</option>
-              <option value="Inactivo">Inactivos</option>
-            </select>
+            <input type="text" id="searchProveedores" placeholder="Buscar por empresa, contacto, RFC, teléfono o ciudad..." autocomplete="off">
           </div>
         </div>
 
@@ -417,10 +386,8 @@
                 <th>Proveedor / Empresa</th>
                 <th>Contacto Directo</th>
                 <th>RFC</th>
-                <th>Teléfono / WhatsApp</th>
-                <th>Categoría Principal</th>
-                <th>Días de Crédito</th>
-                <th>Estado</th>
+                <th>Teléfono</th>
+                <th>Dirección Completa</th>
                 <th style="text-align: center;">Acciones</th>
               </tr>
             </thead>
@@ -485,14 +452,9 @@
         <div class="table-toolbar-bar">
           <div class="search-input-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchUsuarios" placeholder="Buscar por nombre, usuario de acceso o correo...">
+            <input type="text" id="searchUsuarios" placeholder="Buscar por nombre o usuario de acceso...">
           </div>
           <div class="filter-controls-group">
-            <select id="filterUsuarioRol" class="filter-select-input">
-              <option value="todos">Todos los roles</option>
-              <option value="Administrador">Administrador</option>
-              <option value="Cajero">Cajero</option>
-            </select>
             <select id="filterUsuarioEstado" class="filter-select-input">
               <option value="todos">Todos los estados</option>
               <option value="Activo">Activos</option>
@@ -505,10 +467,8 @@
           <table class="crud-table" id="tablaUsuarios">
             <thead>
               <tr>
-                <th>Usuario / Colaborador</th>
-                <th>Correo Electrónico</th>
-                <th>Rol / Permiso</th>
-                <th>Último Acceso</th>
+                <th>Nombre Completo</th>
+                <th>Nombre de Usuario (Login)</th>
                 <th>Estado</th>
                 <th style="text-align: center;">Acciones</th>
               </tr>
@@ -550,41 +510,33 @@
           <div class="form-grid-2col">
             <div class="form-group-item">
               <label class="form-label-title" for="clienteNombre">Nombre o Razón Social *</label>
-              <input type="text" id="clienteNombre" class="form-control-input" required placeholder="Ej. Taller Mecánico Especializado">
+              <input type="text" id="clienteNombre" class="form-control-input" required placeholder="Ej. Taller Mecánico El Pistón">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="clienteTipo">Tipo de Cliente *</label>
-              <select id="clienteTipo" class="form-control-select" required>
-                <option value="Particular">Particular</option>
-                <option value="Taller Mecánico" selected>Taller Mecánico</option>
-                <option value="Mayorista">Mayorista</option>
-                <option value="Flotilla">Flotilla</option>
-              </select>
+              <label class="form-label-title" for="clienteRfc">RFC</label>
+              <input type="text" id="clienteRfc" class="form-control-input" placeholder="MEVC850412H81" maxlength="15">
             </div>
           </div>
 
           <div class="form-grid-2col">
             <div class="form-group-item">
-              <label class="form-label-title" for="clienteRfc">RFC o Identificación</label>
-              <input type="text" id="clienteRfc" class="form-control-input" placeholder="XAXX010101000">
+              <label class="form-label-title" for="clienteCalle">Calle *</label>
+              <input type="text" id="clienteCalle" class="form-control-input" required placeholder="Ej. Av. Hidalgo">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="clienteTelefono">Teléfono de Contacto *</label>
-              <input type="text" id="clienteTelefono" class="form-control-input" required placeholder="55 1234 5678">
+              <label class="form-label-title" for="clienteNumero">Número Ext / Int *</label>
+              <input type="text" id="clienteNumero" class="form-control-input" required placeholder="124">
             </div>
           </div>
 
           <div class="form-grid-2col">
             <div class="form-group-item">
-              <label class="form-label-title" for="clienteEmail">Correo Electrónico</label>
-              <input type="email" id="clienteEmail" class="form-control-input" placeholder="cliente@correo.com">
+              <label class="form-label-title" for="clienteCp">Código Postal *</label>
+              <input type="text" id="clienteCp" class="form-control-input" required placeholder="87000" maxlength="10">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="clienteEstado">Estado de la Cuenta</label>
-              <select id="clienteEstado" class="form-control-select">
-                <option value="Activo" selected>Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+              <label class="form-label-title" for="clienteCd">Ciudad / Municipio *</label>
+              <input type="text" id="clienteCd" class="form-control-input" required placeholder="Ej. Ciudad Victoria">
             </div>
           </div>
         </div>
@@ -609,54 +561,55 @@
           <div class="form-grid-2col">
             <div class="form-group-item">
               <label class="form-label-title" for="proveedorEmpresa">Empresa / Razón Social *</label>
-              <input type="text" id="proveedorEmpresa" class="form-control-input" required placeholder="Ej. Autopartes y Refacciones de México">
+              <input type="text" id="proveedorEmpresa" class="form-control-input" required placeholder="Ej. Distribuidora Automotriz DANA">
             </div>
             <div class="form-group-item">
               <label class="form-label-title" for="proveedorContacto">Persona de Contacto *</label>
-              <input type="text" id="proveedorContacto" class="form-control-input" required placeholder="Ej. Lic. Roberto Gómez">
+              <input type="text" id="proveedorContacto" class="form-control-input" required placeholder="Ej. Lic. Roberto Garza">
             </div>
           </div>
 
           <div class="form-grid-2col">
             <div class="form-group-item">
-              <label class="form-label-title" for="proveedorRfc">RFC de la Empresa</label>
-              <input type="text" id="proveedorRfc" class="form-control-input" placeholder="ARM950812XYZ">
+              <label class="form-label-title" for="proveedorRfc">RFC de la Empresa *</label>
+              <input type="text" id="proveedorRfc" class="form-control-input" required placeholder="DAD980315RT2" maxlength="13">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="proveedorTelefono">Teléfono / WhatsApp *</label>
-              <input type="text" id="proveedorTelefono" class="form-control-input" required placeholder="81 8321 0099">
-            </div>
-          </div>
-
-          <div class="form-grid-2col">
-            <div class="form-group-item">
-              <label class="form-label-title" for="proveedorCategoria">Categoría Principal *</label>
-              <select id="proveedorCategoria" class="form-control-select" required>
-                <option value="Suspensión y Dirección">Suspensión y Dirección</option>
-                <option value="Frenos">Frenos</option>
-                <option value="Motor">Motor</option>
-                <option value="Eléctrico">Eléctrico</option>
-                <option value="Lubricantes y Filtros">Lubricantes y Filtros</option>
-                <option value="Colisión y Accesorios">Colisión y Accesorios</option>
-              </select>
-            </div>
-            <div class="form-group-item">
-              <label class="form-label-title" for="proveedorCredito">Días de Crédito Otorgados</label>
-              <input type="number" id="proveedorCredito" class="form-control-input" value="30" min="0" step="5">
+              <label class="form-label-title" for="proveedorTelefono">Teléfono (10 a 13 dígitos) *</label>
+              <input type="text" id="proveedorTelefono" class="form-control-input" required placeholder="8183459012" maxlength="13">
             </div>
           </div>
 
           <div class="form-grid-2col">
             <div class="form-group-item">
-              <label class="form-label-title" for="proveedorEmail">Correo de Pedidos</label>
-              <input type="email" id="proveedorEmail" class="form-control-input" placeholder="ventas@proveedor.com">
+              <label class="form-label-title" for="proveedorCalle">Calle *</label>
+              <input type="text" id="proveedorCalle" class="form-control-input" required placeholder="Ej. Av. Industrial">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="proveedorEstado">Estado del Proveedor</label>
-              <select id="proveedorEstado" class="form-control-select">
-                <option value="Activo" selected>Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+              <label class="form-label-title" for="proveedorColonia">Colonia *</label>
+              <input type="text" id="proveedorColonia" class="form-control-input" required placeholder="Ej. Parque Norte">
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorNo">Número Ext / Int *</label>
+              <input type="text" id="proveedorNo" class="form-control-input" required placeholder="200">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorCp">Código Postal *</label>
+              <input type="text" id="proveedorCp" class="form-control-input" required placeholder="66450" maxlength="10">
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorCd">Ciudad *</label>
+              <input type="text" id="proveedorCd" class="form-control-input" required placeholder="Ej. Monterrey">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="proveedorEstado">Estado *</label>
+              <input type="text" id="proveedorEstado" class="form-control-input" required placeholder="Ej. Nuevo León">
             </div>
           </div>
         </div>
@@ -691,28 +644,14 @@
 
           <div class="form-grid-2col">
             <div class="form-group-item">
-              <label class="form-label-title" for="usuarioEmail">Correo Electrónico *</label>
-              <input type="email" id="usuarioEmail" class="form-control-input" required placeholder="juan.perez@refaccionaria.com">
-            </div>
-            <div class="form-group-item">
-              <label class="form-label-title" for="usuarioRol">Rol en el Sistema *</label>
-              <select id="usuarioRol" class="form-control-select" required>
-                <option value="Administrador">Administrador (Acceso Total)</option>
-                <option value="Cajero" selected>Cajero (Punto de Venta)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-grid-2col">
-            <div class="form-group-item">
               <label class="form-label-title" for="usuarioPassword">Contraseña <span id="passOptionalText" style="font-weight: normal; color: #64748b;">*</span></label>
               <input type="password" id="usuarioPassword" class="form-control-input" placeholder="••••••••">
             </div>
             <div class="form-group-item">
-              <label class="form-label-title" for="usuarioEstado">Estado</label>
-              <select id="usuarioEstado" class="form-control-select">
-                <option value="Activo" selected>Activo</option>
-                <option value="Inactivo">Inactivo</option>
+              <label class="form-label-title" for="usuarioStatus">Estado de la Cuenta *</label>
+              <select id="usuarioStatus" class="form-control-select" required>
+                <option value="1" selected>Activo</option>
+                <option value="0">Inactivo</option>
               </select>
             </div>
           </div>
@@ -741,3 +680,6 @@
 
 </body>
 </html>
+
+
+

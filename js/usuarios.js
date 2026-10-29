@@ -1,6 +1,6 @@
 // ==========================================
 // USUARIOS.JS - MÓDULO DE USUARIOS (CRUD & FILTROS)
-// Datos reales desde la API (SQL Server)
+// Adaptado a la base de datos REFACCIONARIA (script.sql)
 // ==========================================
 
 let usuariosData = [];
@@ -19,32 +19,32 @@ window.loadUsuarios = loadUsuarios;
 function renderUsuarios() {
   const tbody = document.getElementById('tbodyUsuarios');
   const searchInput = document.getElementById('searchUsuarios');
-  const filterRolSelect = document.getElementById('filterUsuarioRol');
   const filterEstadoSelect = document.getElementById('filterUsuarioEstado');
 
   if (!tbody) return;
 
   const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-  const filterRol = filterRolSelect ? filterRolSelect.value : 'todos';
   const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
 
   const filtered = usuariosData.filter(u => {
-    const matchesSearch = u.nombre.toLowerCase().includes(search) ||
-                          u.username.toLowerCase().includes(search) ||
-                          u.email.toLowerCase().includes(search);
-    const matchesRol = filterRol === 'todos' || u.rol === filterRol;
-    const matchesEstado = filterEstado === 'todos' || u.estado === filterEstado;
-    return matchesSearch && matchesRol && matchesEstado;
+    const nombre = String(u.nombre || '').toLowerCase();
+    const username = String(u.username || '').toLowerCase();
+    const estado = String(u.estado || '');
+
+    const matchesSearch = !search || nombre.includes(search) || username.includes(search);
+    const matchesEstado = filterEstado === 'todos' || estado === filterEstado;
+    return matchesSearch && matchesEstado;
   });
 
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8;">No se encontraron usuarios con los filtros aplicados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 30px; color: #94a3b8;">No se encontraron usuarios con los filtros aplicados.</td></tr>`;
   } else {
     filtered.forEach(u => {
-      const initials = u.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
-      const roleBadgeClass = u.rol === 'Administrador' ? 'badge-role-admin' : 'badge-role-cashier';
+      const words = String(u.nombre || '').trim().split(/\s+/).filter(Boolean);
+      const initials = (words.slice(0, 2).map(w => w[0]).join('') || 'US').toUpperCase();
+      const esActivo = u.estado === 'Activo' || u.status === '1';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -53,24 +53,18 @@ function renderUsuarios() {
             <div class="circle-avatar" style="background: #ede9fe; color: #6366f1;">${initials}</div>
             <div>
               <div class="item-main-title">${u.nombre}</div>
-              <div class="item-sub-title">@${u.username}</div>
+              <div class="item-sub-title"><i class="fa-solid fa-hashtag"></i> ID: #${u.id}</div>
             </div>
           </div>
         </td>
         <td>
-          <div><i class="fa-regular fa-envelope" style="color: #64748b; font-size: 11px;"></i> ${u.email}</div>
+          <div style="font-weight: 600; color: #1e293b;">
+            <i class="fa-solid fa-at" style="color: #6366f1; font-size: 11px;"></i> ${u.username}
+          </div>
         </td>
         <td>
-          <span class="badge-tag ${roleBadgeClass}">
-            <i class="fa-solid fa-shield-halved" style="font-size: 10px;"></i> ${u.rol}
-          </span>
-        </td>
-        <td>
-          <span style="font-size: 13px; color: #64748b;">${u.ultimoAcceso || 'Nunca'}</span>
-        </td>
-        <td>
-          <span class="badge-tag ${u.estado === 'Activo' ? 'badge-active' : 'badge-inactive'}">
-            <i class="fa-solid ${u.estado === 'Activo' ? 'fa-check' : 'fa-ban'}"></i> ${u.estado}
+          <span class="badge-tag ${esActivo ? 'badge-active' : 'badge-inactive'}">
+            <i class="fa-solid ${esActivo ? 'fa-check' : 'fa-ban'}"></i> ${esActivo ? 'Activo' : 'Inactivo'}
           </span>
         </td>
         <td>
@@ -95,11 +89,11 @@ function renderUsuarios() {
   const statTotal = document.getElementById('statTotalUsuarios');
   if (statTotal) statTotal.innerText = usuariosData.length;
 
-  const statAdmin = document.getElementById('statUsuariosAdmin');
-  if (statAdmin) statAdmin.innerText = usuariosData.filter(u => u.rol === 'Administrador').length;
+  const statActivos = document.getElementById('statUsuariosActivos');
+  if (statActivos) statActivos.innerText = usuariosData.filter(u => u.estado === 'Activo' || u.status === '1').length;
 
-  const statCajeros = document.getElementById('statUsuariosCajeros');
-  if (statCajeros) statCajeros.innerText = usuariosData.filter(u => u.rol === 'Cajero').length;
+  const statInactivos = document.getElementById('statUsuariosInactivos');
+  if (statInactivos) statInactivos.innerText = usuariosData.filter(u => u.estado === 'Inactivo' || u.status === '0').length;
 }
 
 const btnOpenUsuarioModal = document.getElementById('btnOpenUsuarioModal');
@@ -109,40 +103,52 @@ if (btnOpenUsuarioModal) {
     if (form) form.reset();
     const idInput = document.getElementById('usuarioId');
     if (idInput) idInput.value = '';
-    const title = document.getElementById('modalUsuarioTitle');
-    if (title) title.innerHTML = '<i class="fa-solid fa-user-shield"></i> Nuevo Usuario';
-    const passOpt = document.getElementById('passOptionalText');
-    if (passOpt) passOpt.innerText = '*';
     const passInput = document.getElementById('usuarioPassword');
-    if (passInput) passInput.required = true;
+    if (passInput) {
+      passInput.required = true;
+      passInput.placeholder = '••••••••';
+    }
+    const passOptionalText = document.getElementById('passOptionalText');
+    if (passOptionalText) passOptionalText.innerText = '* (Obligatoria para nuevo usuario)';
+
+    const title = document.getElementById('modalUsuarioTitle');
+    if (title) title.innerHTML = '<i class="fa-solid fa-user-plus"></i> Nuevo Usuario';
     openModal('modalUsuario');
   });
 }
 
 window.editarUsuario = function(id) {
-  const usr = usuariosData.find(u => u.id == id);
-  if (!usr) return;
-  document.getElementById('usuarioId').value = usr.id;
-  document.getElementById('usuarioNombre').value = usr.nombre;
-  document.getElementById('usuarioUsername').value = usr.username;
-  document.getElementById('usuarioEmail').value = usr.email;
-  document.getElementById('usuarioRol').value = usr.rol;
-  document.getElementById('usuarioEstado').value = usr.estado;
-  document.getElementById('usuarioPassword').value = '';
-  document.getElementById('usuarioPassword').required = false;
-  const passOpt = document.getElementById('passOptionalText');
-  if (passOpt) passOpt.innerText = '(Opcional)';
-  document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fa-solid fa-user-pen"></i> Editar Usuario';
+  const usuario = usuariosData.find(u => u.id == id);
+  if (!usuario) return;
+  document.getElementById('usuarioId').value = usuario.id;
+  document.getElementById('usuarioNombre').value = usuario.nombre || '';
+  document.getElementById('usuarioUsername').value = usuario.username || '';
+  
+  const passInput = document.getElementById('usuarioPassword');
+  if (passInput) {
+    passInput.value = '';
+    passInput.required = false;
+    passInput.placeholder = 'Dejar en blanco para no cambiarla';
+  }
+  const passOptionalText = document.getElementById('passOptionalText');
+  if (passOptionalText) passOptionalText.innerText = '(Opcional al editar)';
+
+  const estadoSelect = document.getElementById('usuarioStatus');
+  if (estadoSelect) {
+    estadoSelect.value = (usuario.status === '1' || usuario.estado === 'Activo') ? '1' : '0';
+  }
+
+  document.getElementById('modalUsuarioTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Usuario';
   openModal('modalUsuario');
 };
 
 window.eliminarUsuario = async function(id) {
-  const usr = usuariosData.find(u => u.id == id);
-  if (!usr) return;
-  if (confirm(`¿Está seguro de eliminar al usuario "${usr.nombre}" (@${usr.username})?`)) {
+  const usuario = usuariosData.find(u => u.id == id);
+  if (!usuario) return;
+  if (confirm(`¿Está seguro de eliminar al usuario "${usuario.nombre}" (@${usuario.username})?`)) {
     try {
       await apiRequest(`usuarios/?id=${id}`, { method: 'DELETE' });
-      showToast('Usuario eliminado del sistema', 'danger');
+      showToast('Usuario eliminado correctamente', 'danger');
       await loadUsuarios();
     } catch (err) {
       showToast(err.message, 'danger');
@@ -155,22 +161,28 @@ if (formUsuario) {
   formUsuario.addEventListener('submit', async (e) => {
     e.preventDefault();
     const idVal = document.getElementById('usuarioId').value;
-    const usrObj = {
+    const passVal = document.getElementById('usuarioPassword').value;
+
+    const usuarioObj = {
       nombre: document.getElementById('usuarioNombre').value.trim(),
-      username: document.getElementById('usuarioUsername').value.trim().toLowerCase(),
-      email: document.getElementById('usuarioEmail').value.trim(),
-      rol: document.getElementById('usuarioRol').value,
-      estado: document.getElementById('usuarioEstado').value,
-      password: document.getElementById('usuarioPassword').value
+      username: document.getElementById('usuarioUsername').value.trim(),
+      status: document.getElementById('usuarioStatus').value
     };
+
+    if (passVal) {
+      usuarioObj.password = passVal;
+    } else if (!idVal) {
+      showToast('La contraseña es obligatoria al registrar un usuario', 'danger');
+      return;
+    }
 
     try {
       if (idVal) {
-        await apiRequest(`usuarios/?id=${idVal}`, { method: 'PUT', body: JSON.stringify(usrObj) });
+        await apiRequest(`usuarios/?id=${idVal}`, { method: 'PUT', body: JSON.stringify(usuarioObj) });
         showToast('Usuario actualizado con éxito', 'success');
       } else {
-        await apiRequest('usuarios/', { method: 'POST', body: JSON.stringify(usrObj) });
-        showToast('Nuevo usuario creado exitosamente', 'success');
+        await apiRequest('usuarios/', { method: 'POST', body: JSON.stringify(usuarioObj) });
+        showToast('Nuevo usuario creado', 'success');
       }
       closeModal('modalUsuario');
       await loadUsuarios();
@@ -182,9 +194,6 @@ if (formUsuario) {
 
 const searchUsuariosInput = document.getElementById('searchUsuarios');
 if (searchUsuariosInput) searchUsuariosInput.addEventListener('input', renderUsuarios);
-
-const filterUsuarioRol = document.getElementById('filterUsuarioRol');
-if (filterUsuarioRol) filterUsuarioRol.addEventListener('change', renderUsuarios);
 
 const filterUsuarioEstado = document.getElementById('filterUsuarioEstado');
 if (filterUsuarioEstado) filterUsuarioEstado.addEventListener('change', renderUsuarios);

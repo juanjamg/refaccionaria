@@ -1,11 +1,11 @@
 <?php
 // ==========================================
-// API: USUARIOS
+// API: USUARIOS (Compatible con script.sql - Stored Procedures)
 // GET    /api/usuarios/          → listar
 // GET    /api/usuarios/?id=5     → uno
-// POST   /api/usuarios/          → crear (password obligatorio)
-// PUT    /api/usuarios/?id=5     → editar (password opcional)
-// DELETE /api/usuarios/?id=5     → eliminar
+// POST   /api/usuarios/          → crear (sp_InsertarUsuario)
+// PUT    /api/usuarios/?id=5     → editar (sp_ModificarUsuario)
+// DELETE /api/usuarios/?id=5     → eliminar (sp_EliminarUsuario)
 // ==========================================
 
 require_once __DIR__ . '/../config/db.php';
@@ -14,20 +14,10 @@ require_once __DIR__ . '/../config/http.php';
 $pdo = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Nunca devolver password_hash al frontend
-const CAMPOS = 'id, sucursal_id, nombre, username, email, rol, estado,
-                ultimo_acceso AS ultimoAcceso, created_at';
-
-function mapUsuario(array $row): array
+function formatUsuario(array $row): array
 {
-    $acceso = $row['ultimoAcceso'];
-    if ($acceso instanceof DateTime) {
-        $row['ultimoAcceso'] = $acceso->format('d/m/Y H:i');
-    } elseif ($acceso) {
-        $row['ultimoAcceso'] = date('d/m/Y H:i', strtotime($acceso));
-    } else {
-        $row['ultimoAcceso'] = null;
-    }
+    $row['estado'] = ($row['status'] === '1' || $row['status'] === 1) ? 'Activo' : 'Inactivo';
+    unset($row['Password_Usuario']); // Seguridad: nunca exponer el hash
     return $row;
 }
 
@@ -36,98 +26,123 @@ try {
         case 'GET':
             if (isset($_GET['id'])) {
                 $id = getIdParam();
-                $stmt = $pdo->prepare('SELECT ' . CAMPOS . ' FROM usuarios WHERE id = ?');
+                $stmt = $pdo->prepare('SELECT Id_Usuario AS id, Nombre_Usuario AS username, Nombre_Com_Usuario AS nombre, Status AS status FROM dbo.Usuario WHERE Id_Usuario = ?');
                 $stmt->execute([$id]);
                 $usuario = $stmt->fetch();
                 if (!$usuario) {
                     jsonResponse(false, null, 'Usuario no encontrado', 404);
                 }
-                jsonResponse(true, mapUsuario($usuario), 'Usuario obtenido correctamente');
+                jsonResponse(true, formatUsuario($usuario), 'Usuario obtenido correctamente');
             }
 
-            $stmt = $pdo->query('SELECT ' . CAMPOS . ' FROM usuarios ORDER BY nombre');
-            $usuarios = array_map('mapUsuario', $stmt->fetchAll());
+            $stmt = $pdo->query('SELECT Id_Usuario AS id, Nombre_Usuario AS username, Nombre_Com_Usuario AS nombre, Status AS status FROM dbo.Usuario ORDER BY Nombre_Com_Usuario');
+            $usuarios = array_map('formatUsuario', $stmt->fetchAll());
             jsonResponse(true, $usuarios, 'Usuarios obtenidos correctamente', 200, count($usuarios));
             break;
 
         case 'POST':
             $input = getJsonInput();
-            requireFields($input, ['nombre', 'username', 'email', 'password']);
+            requireFields($input, ['nombre', 'username', 'password']);
 
-            $stmt = $pdo->prepare(
-                'INSERT INTO usuarios (sucursal_id, nombre, username, email, password_hash, rol, estado)
-                 OUTPUT INSERTED.id
-                 VALUES (?, ?, ?, ?, ?, ?, ?)'
-            );
+            $statusVal = (isset($input['status']) && ($input['status'] === '0' || $input['status'] === 'Inactivo')) ? '0' : '1';
+            $passwordHash = password_hash($input['password'], PASSWORD_BCRYPT);
+
+            $sql = 'DECLARE @msg VARCHAR(200), @newId INT;
+                    EXEC dbo.sp_InsertarUsuario
+                        @Nombre_Usuario = ?,
+                        @Nombre_Com_Usuario = ?,
+                        @Password_Usuario = ?,
+                        @Status = ?,
+                        @Mensaje = @msg OUTPUT,
+                        @Id_UsuarioInsertado = @newId OUTPUT;
+                    SELECT @msg AS mensaje, @newId AS id;';
+
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([
-                (int) ($input['sucursal_id'] ?? 1),
-                $input['nombre'],
                 $input['username'],
-                $input['email'],
-                password_hash($input['password'], PASSWORD_BCRYPT),
-                $input['rol'] ?? 'Cajero',
-                $input['estado'] ?? 'Activo',
+                $input['nombre'],
+                $passwordHash,
+                $statusVal,
             ]);
-            $newId = (int) $stmt->fetchColumn();
+            $res = $stmt->fetch();
 
-            jsonResponse(true, ['id' => $newId], 'Usuario creado correctamente', 201);
+            if (!$res || empty($res['id'])) {
+                jsonResponse(false, null, $res['mensaje'] ?? 'Error al registrar el usuario', 400);
+            }
+
+            jsonResponse(true, ['id' => (int) $res['id']], $res['mensaje'] ?? 'Usuario creado correctamente', 201);
             break;
 
         case 'PUT':
             $id = getIdParam();
             $input = getJsonInput();
-            requireFields($input, ['nombre', 'username', 'email']);
+            requireFields($input, ['nombre', 'username']);
 
-            $sql = 'UPDATE usuarios
-                    SET nombre = ?, username = ?, email = ?, rol = ?, estado = ?';
-            $params = [
-                $input['nombre'],
-                $input['username'],
-                $input['email'],
-                $input['rol'] ?? 'Cajero',
-                $input['estado'] ?? 'Activo',
-            ];
+            $statusVal = (isset($input['status']) && ($input['status'] === '0' || $input['status'] === 'Inactivo')) ? '0' : '1';
 
-            // Solo actualizar contraseña si se envió una nueva
+            // Si no se proporcionó contraseña, conservar la que ya está almacenada
             if (!empty($input['password'])) {
-                $sql .= ', password_hash = ?';
-                $params[] = password_hash($input['password'], PASSWORD_BCRYPT);
+                $passwordHash = password_hash($input['password'], PASSWORD_BCRYPT);
+            } else {
+                $stmtCurrent = $pdo->prepare('SELECT Password_Usuario FROM dbo.Usuario WHERE Id_Usuario = ?');
+                $stmtCurrent->execute([$id]);
+                $currentPass = $stmtCurrent->fetchColumn();
+                $passwordHash = $currentPass ?: password_hash('default123', PASSWORD_BCRYPT);
             }
 
-            $sql .= ' WHERE id = ?';
-            $params[] = $id;
+            $sql = 'DECLARE @msg VARCHAR(200);
+                    EXEC dbo.sp_ModificarUsuario
+                        @Id_Usuario = ?,
+                        @Nombre_Usuario = ?,
+                        @Nombre_Com_Usuario = ?,
+                        @Password_Usuario = ?,
+                        @Status = ?,
+                        @Mensaje = @msg OUTPUT;
+                    SELECT @msg AS mensaje;';
 
             $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+            $stmt->execute([
+                $id,
+                $input['username'],
+                $input['nombre'],
+                $passwordHash,
+                $statusVal,
+            ]);
+            $res = $stmt->fetch();
 
-            if ($stmt->rowCount() === 0) {
-                jsonResponse(false, null, 'Usuario no encontrado', 404);
+            if ($res && str_starts_with($res['mensaje'] ?? '', 'Error')) {
+                jsonResponse(false, null, $res['mensaje'], 400);
             }
-            jsonResponse(true, null, 'Usuario actualizado correctamente');
+
+            jsonResponse(true, null, $res['mensaje'] ?? 'Usuario actualizado correctamente');
             break;
 
         case 'DELETE':
             $id = getIdParam();
 
-            $stmt = $pdo->prepare('DELETE FROM usuarios WHERE id = ?');
-            $stmt->execute([$id]);
+            $sql = 'DECLARE @msg VARCHAR(200);
+                    EXEC dbo.sp_EliminarUsuario
+                        @Id_Usuario = ?,
+                        @Mensaje = @msg OUTPUT;
+                    SELECT @msg AS mensaje;';
 
-            if ($stmt->rowCount() === 0) {
-                jsonResponse(false, null, 'Usuario no encontrado', 404);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$id]);
+            $res = $stmt->fetch();
+
+            if ($res && str_starts_with($res['mensaje'] ?? '', 'Error')) {
+                jsonResponse(false, null, $res['mensaje'], 400);
             }
-            jsonResponse(true, null, 'Usuario eliminado correctamente');
+
+            jsonResponse(true, null, $res['mensaje'] ?? 'Usuario eliminado correctamente');
             break;
 
         default:
             jsonResponse(false, null, 'Método no permitido', 405);
     }
 } catch (PDOException $e) {
-    $msg = $e->getMessage();
-    if (str_contains($msg, 'UNIQUE KEY constraint') || str_contains($msg, 'duplicate key')) {
-        jsonResponse(false, null, 'El username o email ya está en uso', 409);
+    if (str_contains($e->getMessage(), 'REFERENCE constraint') || str_contains($e->getMessage(), 'FK_')) {
+        jsonResponse(false, null, 'No se puede eliminar: el usuario tiene registros en bitácora o módulos', 409);
     }
-    if (str_contains($msg, 'REFERENCE constraint')) {
-        jsonResponse(false, null, 'No se puede eliminar: el usuario tiene ventas registradas', 409);
-    }
-    jsonResponse(false, null, 'Error en la base de datos', 500);
+    jsonResponse(false, null, 'Error en la base de datos: ' . $e->getMessage(), 500);
 }

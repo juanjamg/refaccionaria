@@ -4,9 +4,9 @@
 // La BD vive en una máquina virtual: apuntar DB_HOST a su IP
 // ==========================================
 
-define('DB_HOST', '10.10.214.206'); // IP de la VM, ej. 192.168.1.50
+define('DB_HOST', '10.10.214.190'); // IP de la VM, ej. 192.168.1.50
 define('DB_PORT', '1433');
-define('DB_NAME', 'refaccionaria_db'); // Nombre BD
+define('DB_NAME', 'REFACCIONARIA'); // Nombre BD
 define('DB_USER', 'sa');          // o un login SQL dedicado
 define('DB_PASS', 'juanja123');            // contraseña del login SQL
 

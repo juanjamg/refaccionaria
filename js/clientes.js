@@ -1,6 +1,6 @@
 // ==========================================
 // CLIENTES.JS - MÓDULO DE CLIENTES (CRUD & FILTROS)
-// Datos reales desde la API (SQL Server)
+// Adaptado a la base de datos REFACCIONARIA (script.sql)
 // ==========================================
 
 let clientesData = [];
@@ -19,32 +19,37 @@ window.loadClientes = loadClientes;
 function renderClientes() {
   const tbody = document.getElementById('tbodyClientes');
   const searchInput = document.getElementById('searchClientes');
-  const filterTipoSelect = document.getElementById('filterClienteTipo');
-  const filterEstadoSelect = document.getElementById('filterClienteEstado');
 
   if (!tbody) return;
 
   const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
-  const filterTipo = filterTipoSelect ? filterTipoSelect.value : 'todos';
-  const filterEstado = filterEstadoSelect ? filterEstadoSelect.value : 'todos';
 
   const filtered = clientesData.filter(c => {
-    const matchesSearch = c.nombre.toLowerCase().includes(search) ||
-                          (c.rfc || '').toLowerCase().includes(search) ||
-                          (c.telefono || '').includes(search) ||
-                          (c.email || '').toLowerCase().includes(search);
-    const matchesTipo = filterTipo === 'todos' || c.tipo === filterTipo;
-    const matchesEstado = filterEstado === 'todos' || c.estado === filterEstado;
-    return matchesSearch && matchesTipo && matchesEstado;
+    const nombre = String(c.nombre || '').toLowerCase();
+    const rfc = String(c.rfc || '').toLowerCase();
+    const calle = String(c.direccion_calle || '').toLowerCase();
+    const numero = String(c.direccion_numero || '').toLowerCase();
+    const cp = String(c.direccion_cp || '').toLowerCase();
+    const cd = String(c.direccion_cd || '').toLowerCase();
+
+    return !search ||
+           nombre.includes(search) ||
+           rfc.includes(search) ||
+           calle.includes(search) ||
+           numero.includes(search) ||
+           cp.includes(search) ||
+           cd.includes(search);
   });
 
   tbody.innerHTML = '';
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8;">No se encontraron clientes con los filtros aplicados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">No se encontraron clientes registrados con los filtros aplicados.</td></tr>`;
   } else {
     filtered.forEach(c => {
-      const initials = c.nombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      const words = String(c.nombre || '').trim().split(/\s+/).filter(Boolean);
+      const initials = (words.slice(0, 2).map(w => w[0]).join('') || 'CL').toUpperCase();
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
@@ -52,21 +57,16 @@ function renderClientes() {
             <div class="circle-avatar" style="background: #e0f2fe; color: #0284c7;">${initials}</div>
             <div>
               <div class="item-main-title">${c.nombre}</div>
-              <div class="item-sub-title"><i class="fa-solid fa-tag"></i> ${c.tipo}</div>
+              <div class="item-sub-title"><i class="fa-solid fa-id-card"></i> ID: #${c.id}</div>
             </div>
           </div>
         </td>
         <td><strong>${c.rfc || 'Sin RFC'}</strong></td>
         <td>
-          <div><i class="fa-solid fa-phone" style="color: #64748b; font-size: 11px;"></i> ${c.telefono}</div>
+          <div><i class="fa-solid fa-location-dot" style="color: #64748b; font-size: 11px;"></i> ${c.direccion_calle} #${c.direccion_numero}</div>
         </td>
         <td>
-          <div><i class="fa-regular fa-envelope" style="color: #64748b; font-size: 11px;"></i> ${c.email || 'N/A'}</div>
-        </td>
-        <td>
-          <span class="badge-tag ${c.estado === 'Activo' ? 'badge-active' : 'badge-inactive'}">
-            <i class="fa-solid ${c.estado === 'Activo' ? 'fa-check' : 'fa-ban'}"></i> ${c.estado}
-          </span>
+          <div><i class="fa-solid fa-city" style="color: #64748b; font-size: 11px;"></i> ${c.direccion_cd} (CP: ${c.direccion_cp})</div>
         </td>
         <td>
           <div class="action-buttons-group" style="justify-content: center;">
@@ -91,10 +91,10 @@ function renderClientes() {
   if (statTotal) statTotal.innerText = clientesData.length;
 
   const statActivos = document.getElementById('statClientesActivos');
-  if (statActivos) statActivos.innerText = clientesData.filter(c => c.estado === 'Activo').length;
+  if (statActivos) statActivos.innerText = clientesData.length;
 
   const statTalleres = document.getElementById('statClientesTalleres');
-  if (statTalleres) statTalleres.innerText = clientesData.filter(c => c.tipo === 'Taller Mecánico').length;
+  if (statTalleres) statTalleres.innerText = clientesData.filter(c => (c.nombre || '').toLowerCase().includes('taller')).length;
 }
 
 const btnOpenClienteModal = document.getElementById('btnOpenClienteModal');
@@ -114,12 +114,13 @@ window.editarCliente = function(id) {
   const cliente = clientesData.find(c => c.id == id);
   if (!cliente) return;
   document.getElementById('clienteId').value = cliente.id;
-  document.getElementById('clienteNombre').value = cliente.nombre;
-  document.getElementById('clienteTipo').value = cliente.tipo;
+  document.getElementById('clienteNombre').value = cliente.nombre || '';
   document.getElementById('clienteRfc').value = cliente.rfc || '';
-  document.getElementById('clienteTelefono').value = cliente.telefono;
-  document.getElementById('clienteEmail').value = cliente.email || '';
-  document.getElementById('clienteEstado').value = cliente.estado;
+  document.getElementById('clienteCalle').value = cliente.direccion_calle || '';
+  document.getElementById('clienteNumero').value = cliente.direccion_numero || '';
+  document.getElementById('clienteCp').value = cliente.direccion_cp || '';
+  document.getElementById('clienteCd').value = cliente.direccion_cd || '';
+
   document.getElementById('modalClienteTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Cliente';
   openModal('modalCliente');
 };
@@ -145,11 +146,11 @@ if (formCliente) {
     const idVal = document.getElementById('clienteId').value;
     const clienteObj = {
       nombre: document.getElementById('clienteNombre').value.trim(),
-      tipo: document.getElementById('clienteTipo').value,
-      rfc: document.getElementById('clienteRfc').value.trim().toUpperCase(),
-      telefono: document.getElementById('clienteTelefono').value.trim(),
-      email: document.getElementById('clienteEmail').value.trim(),
-      estado: document.getElementById('clienteEstado').value
+      rfc: document.getElementById('clienteRfc').value.trim().toUpperCase() || null,
+      direccion_calle: document.getElementById('clienteCalle').value.trim(),
+      direccion_numero: document.getElementById('clienteNumero').value.trim(),
+      direccion_cp: document.getElementById('clienteCp').value.trim(),
+      direccion_cd: document.getElementById('clienteCd').value.trim()
     };
 
     try {
@@ -170,12 +171,6 @@ if (formCliente) {
 
 const searchClientesInput = document.getElementById('searchClientes');
 if (searchClientesInput) searchClientesInput.addEventListener('input', renderClientes);
-
-const filterClienteTipo = document.getElementById('filterClienteTipo');
-if (filterClienteTipo) filterClienteTipo.addEventListener('change', renderClientes);
-
-const filterClienteEstado = document.getElementById('filterClienteEstado');
-if (filterClienteEstado) filterClienteEstado.addEventListener('change', renderClientes);
 
 // Inicializar: cargar datos desde la API
 loadClientes();
