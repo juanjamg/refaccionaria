@@ -1,4 +1,4 @@
 database/
 .commandcode/
 arquitectura-distribuida.md
-/api/config/db.php
+api/config/db.php
