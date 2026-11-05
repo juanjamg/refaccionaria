@@ -1,15 +1,18 @@
 <?php
 // ==========================================
 // API: PROVEEDORES (Compatible con script.sql - Stored Procedures)
-// GET    /api/proveedores/          → listar
-// GET    /api/proveedores/?id=5     → uno
-// POST   /api/proveedores/          → crear (sp_CrearProveedor)
-// PUT    /api/proveedores/?id=5     → editar (sp_ModificarProveedor)
-// DELETE /api/proveedores/?id=5     → eliminar (sp_EliminarProveedor)
+// GET    /api/proveedores/          → listar (requiere auth)
+// GET    /api/proveedores/?id=5     → uno (requiere auth)
+// POST   /api/proveedores/          → crear (requiere auth)
+// PUT    /api/proveedores/?id=5     → editar (requiere auth)
+// DELETE /api/proveedores/?id=5     → eliminar (requiere auth)
 // ==========================================
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/http.php';
+
+// Todas las operaciones requieren autenticación
+requireAuth();
 
 $pdo = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -53,6 +56,28 @@ try {
                 'direccion_cp', 'direccion_cd', 'direccion_estado'
             ]);
 
+            $empresa = sanitizeString($input['empresa']);
+            $contacto = sanitizeString($input['contacto']);
+            $rfc = strtoupper(sanitizeString($input['rfc']));
+            $telefono = sanitizeString($input['telefono']);
+            $calle = sanitizeString($input['direccion_calle']);
+            $colonia = sanitizeString($input['direccion_colonia']);
+            $numero = sanitizeString($input['direccion_no']);
+            $cp = sanitizeString($input['direccion_cp']);
+            $ciudad = sanitizeString($input['direccion_cd']);
+            $estado = sanitizeString($input['direccion_estado']);
+
+            validateLength($empresa, 'empresa', 100, 2);
+            validateLength($contacto, 'contacto', 100, 2);
+            validateLength($rfc, 'rfc', 15, 10);
+            validateLength($telefono, 'telefono', 20, 7);
+            validateLength($calle, 'direccion_calle', 100, 2);
+            validateLength($colonia, 'direccion_colonia', 100, 2);
+            validateLength($numero, 'direccion_no', 20, 1);
+            validateLength($cp, 'direccion_cp', 10, 3);
+            validateLength($ciudad, 'direccion_cd', 50, 2);
+            validateLength($estado, 'direccion_estado', 50, 2);
+
             $sql = 'EXEC dbo.sp_CrearProveedor
                         @Nombre_Proveedor = ?,
                         @Rfc = ?,
@@ -68,16 +93,16 @@ try {
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
-                $input['empresa'],
-                $input['rfc'],
-                $input['telefono'],
-                $input['direccion_calle'],
-                $input['direccion_colonia'],
-                $input['direccion_no'],
-                $input['direccion_cp'],
-                $input['direccion_cd'],
-                $input['direccion_estado'],
-                $input['contacto'],
+                $empresa,
+                $rfc,
+                $telefono,
+                $calle,
+                $colonia,
+                $numero,
+                $cp,
+                $ciudad,
+                $estado,
+                $contacto,
             ]);
             $res = $stmt->fetch();
             $newId = (int) ($res['id'] ?? 0);
@@ -93,6 +118,28 @@ try {
                 'direccion_calle', 'direccion_colonia', 'direccion_no',
                 'direccion_cp', 'direccion_cd', 'direccion_estado'
             ]);
+
+            $empresa = sanitizeString($input['empresa']);
+            $contacto = sanitizeString($input['contacto']);
+            $rfc = strtoupper(sanitizeString($input['rfc']));
+            $telefono = sanitizeString($input['telefono']);
+            $calle = sanitizeString($input['direccion_calle']);
+            $colonia = sanitizeString($input['direccion_colonia']);
+            $numero = sanitizeString($input['direccion_no']);
+            $cp = sanitizeString($input['direccion_cp']);
+            $ciudad = sanitizeString($input['direccion_cd']);
+            $estado = sanitizeString($input['direccion_estado']);
+
+            validateLength($empresa, 'empresa', 100, 2);
+            validateLength($contacto, 'contacto', 100, 2);
+            validateLength($rfc, 'rfc', 15, 10);
+            validateLength($telefono, 'telefono', 20, 7);
+            validateLength($calle, 'direccion_calle', 100, 2);
+            validateLength($colonia, 'direccion_colonia', 100, 2);
+            validateLength($numero, 'direccion_no', 20, 1);
+            validateLength($cp, 'direccion_cp', 10, 3);
+            validateLength($ciudad, 'direccion_cd', 50, 2);
+            validateLength($estado, 'direccion_estado', 50, 2);
 
             $sql = 'EXEC dbo.sp_ModificarProveedor
                         @Id_Proveedor = ?,
@@ -110,16 +157,16 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 $id,
-                $input['empresa'],
-                $input['rfc'],
-                $input['telefono'],
-                $input['direccion_calle'],
-                $input['direccion_colonia'],
-                $input['direccion_no'],
-                $input['direccion_cp'],
-                $input['direccion_cd'],
-                $input['direccion_estado'],
-                $input['contacto'],
+                $empresa,
+                $rfc,
+                $telefono,
+                $calle,
+                $colonia,
+                $numero,
+                $cp,
+                $ciudad,
+                $estado,
+                $contacto,
             ]);
 
             jsonResponse(true, null, 'Proveedor actualizado correctamente');
@@ -139,8 +186,5 @@ try {
             jsonResponse(false, null, 'Método no permitido', 405);
     }
 } catch (PDOException $e) {
-    if (str_contains($e->getMessage(), 'REFERENCE constraint') || str_contains($e->getMessage(), 'FK_')) {
-        jsonResponse(false, null, 'No se puede eliminar: el proveedor tiene compras o productos asociados', 409);
-    }
-    jsonResponse(false, null, 'Error en la base de datos: ' . $e->getMessage(), 500);
+    handleDbException($e, 'Error en el módulo de proveedores');
 }

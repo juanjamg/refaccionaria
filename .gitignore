@@ -2,3 +2,5 @@ database/
 .commandcode/
 arquitectura-distribuida.md
 api/config/db.php
+.env
+.env.local

@@ -46,9 +46,9 @@
 
     <!-- TARJETA DEL USUARIO ACTUAL -->
     <div class="user-profile-card">
-      <div class="user-avatar" title="Usuario invitado">U</div>
+      <div class="user-avatar" id="sidebarUserAvatar" title="Usuario">U</div>
       <div class="user-info">
-        <span class="user-name">Usuario invitado</span>
+        <span class="user-name" id="sidebarUserName">Iniciando sesión...</span>
       </div>
     </div>
 
@@ -659,6 +659,39 @@
         <div class="modal-footer-bar">
           <button type="button" class="btn-secondary-action" data-close="modalUsuario">Cancelar</button>
           <button type="submit" class="btn-primary-action"><i class="fa-solid fa-floppy-disk"></i> Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL INICIO DE SESIÓN ==================== -->
+  <div class="custom-modal-overlay" id="modalLogin">
+    <div class="custom-modal-content" style="max-width: 420px;">
+      <div class="modal-header-bar">
+        <h3 id="modalLoginTitle"><i class="fa-solid fa-lock"></i> Iniciar Sesión</h3>
+      </div>
+      <form id="formLogin">
+        <div class="modal-body-scroll" style="padding-top: 20px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); color: #2563eb; font-size: 28px; margin-bottom: 10px;">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <p style="font-size: 14px; color: #64748b; margin: 0;">Refaccionaria Central — Control de Acceso</p>
+          </div>
+          <div class="form-group-item" style="margin-bottom: 16px;">
+            <label class="form-label-title" for="loginUsername">Usuario</label>
+            <input type="text" id="loginUsername" class="form-control-input" required placeholder="admin" autocomplete="username">
+          </div>
+          <div class="form-group-item" style="margin-bottom: 8px;">
+            <label class="form-label-title" for="loginPassword">Contraseña</label>
+            <input type="password" id="loginPassword" class="form-control-input" required placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div id="loginErrorMessage" style="color: #ef4444; font-size: 13px; min-height: 18px; margin-top: 8px;"></div>
+        </div>
+        <div class="modal-footer-bar" style="justify-content: stretch;">
+          <button type="submit" class="btn-primary-action" id="btnSubmitLogin" style="width: 100%; justify-content: center;">
+            <i class="fa-solid fa-right-to-bracket"></i> Entrar al Sistema
+          </button>
         </div>
       </form>
     </div>

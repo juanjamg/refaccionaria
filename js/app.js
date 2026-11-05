@@ -102,10 +102,17 @@ window.addEventListener('hashchange', () => {
 // Acción para el botón salir
 const btnLogout = document.getElementById('btnLogout');
 if (btnLogout) {
-  btnLogout.addEventListener('click', (e) => {
+  btnLogout.addEventListener('click', async (e) => {
     e.preventDefault();
     if (confirm('¿Desea cerrar la sesión actual?')) {
-      showToast('Sesión cerrada correctamente.', 'success');
+      try {
+        await authApi.logout();
+        updateUserProfile(null);
+        showToast('Sesión cerrada correctamente.', 'success');
+        handleAuthRequired();
+      } catch (err) {
+        showToast('Error al cerrar sesión: ' + err.message, 'danger');
+      }
     }
   });
 }
@@ -222,4 +229,109 @@ if (window.matchMedia) {
     }
   });
 }
+
+// ==========================================
+// CONTROL DE ACCESO / AUTENTICACIÓN
+// ==========================================
+let currentRefaUser = null;
+
+function updateUserProfile(user) {
+  currentRefaUser = user;
+  const avatarEl = document.getElementById('sidebarUserAvatar');
+  const nameEl = document.getElementById('sidebarUserName');
+
+  if (!user) {
+    if (avatarEl) {
+      avatarEl.innerText = '?';
+      avatarEl.setAttribute('title', 'Sin sesión activa');
+    }
+    if (nameEl) nameEl.innerText = 'Iniciar sesión';
+    return;
+  }
+
+  const name = user.nombre || user.username || 'Usuario';
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const initials = (words.slice(0, 2).map(w => w[0]).join('') || 'U').toUpperCase();
+
+  if (avatarEl) {
+    avatarEl.innerText = initials;
+    avatarEl.setAttribute('title', `${name} (@${user.username})`);
+  }
+  if (nameEl) {
+    nameEl.innerText = name;
+  }
+}
+
+function handleAuthRequired() {
+  updateUserProfile(null);
+  openModal('modalLogin');
+}
+window.handleAuthRequired = handleAuthRequired;
+
+async function checkSession() {
+  try {
+    const res = await authApi.getMe();
+    if (res && res.data) {
+      updateUserProfile(res.data);
+      closeModal('modalLogin');
+    } else {
+      handleAuthRequired();
+    }
+  } catch (err) {
+    handleAuthRequired();
+  }
+}
+
+// Manejador del Formulario de Login
+const formLogin = document.getElementById('formLogin');
+const loginErrorMsg = document.getElementById('loginErrorMessage');
+const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+
+if (formLogin) {
+  formLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const usernameInput = document.getElementById('loginUsername');
+    const passwordInput = document.getElementById('loginPassword');
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (!username || !password) return;
+
+    if (loginErrorMsg) loginErrorMsg.innerText = '';
+    if (btnSubmitLogin) {
+      btnSubmitLogin.disabled = true;
+      btnSubmitLogin.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+    }
+
+    try {
+      const res = await authApi.login(username, password);
+      updateUserProfile(res.data);
+      closeModal('modalLogin');
+      showToast(`¡Bienvenido, ${res.data.nombre || res.data.username}!`, 'success');
+
+      if (passwordInput) passwordInput.value = '';
+
+      // Cargar datos del módulo activo
+      const activeNav = document.querySelector('.nav-link.active');
+      const activeHash = (activeNav && activeNav.getAttribute('href')?.replace('#', '')) || 'ventas';
+      setActiveModule(activeHash);
+
+    } catch (err) {
+      if (loginErrorMsg) {
+        loginErrorMsg.innerText = err.message || 'Credenciales inválidas';
+      }
+    } finally {
+      if (btnSubmitLogin) {
+        btnSubmitLogin.disabled = false;
+        btnSubmitLogin.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Entrar al Sistema';
+      }
+    }
+  });
+}
+
+// Verificar sesión al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  checkSession();
+});
+
 

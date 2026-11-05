@@ -1,15 +1,18 @@
 <?php
 // ==========================================
 // API: USUARIOS (Compatible con script.sql - Stored Procedures)
-// GET    /api/usuarios/          → listar
-// GET    /api/usuarios/?id=5     → uno
-// POST   /api/usuarios/          → crear (sp_InsertarUsuario)
-// PUT    /api/usuarios/?id=5     → editar (sp_ModificarUsuario)
-// DELETE /api/usuarios/?id=5     → eliminar (sp_EliminarUsuario)
+// GET    /api/usuarios/          → listar (requiere auth)
+// GET    /api/usuarios/?id=5     → uno (requiere auth)
+// POST   /api/usuarios/          → crear (requiere admin)
+// PUT    /api/usuarios/?id=5     → editar (requiere admin)
+// DELETE /api/usuarios/?id=5     → eliminar (requiere admin)
 // ==========================================
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/http.php';
+
+// Todos los accesos requieren usuario autenticado
+$currentUser = requireAuth();
 
 $pdo = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -41,11 +44,20 @@ try {
             break;
 
         case 'POST':
+            requireAdmin(); // Solo administradores pueden dar de alta usuarios
             $input = getJsonInput();
             requireFields($input, ['nombre', 'username', 'password']);
 
+            $username = sanitizeString((string) $input['username']);
+            $nombre = sanitizeString((string) $input['nombre']);
+            $password = (string) $input['password'];
+
+            validateLength($username, 'username', 50, 3);
+            validateLength($nombre, 'nombre', 100, 3);
+            validateLength($password, 'password', 128, 6);
+
             $statusVal = (isset($input['status']) && ($input['status'] === '0' || $input['status'] === 'Inactivo')) ? '0' : '1';
-            $passwordHash = password_hash($input['password'], PASSWORD_BCRYPT);
+            $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
             $sql = 'DECLARE @msg VARCHAR(200), @newId INT;
                     EXEC dbo.sp_InsertarUsuario
@@ -59,8 +71,8 @@ try {
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
-                $input['username'],
-                $input['nombre'],
+                $username,
+                $nombre,
                 $passwordHash,
                 $statusVal,
             ]);
@@ -74,20 +86,32 @@ try {
             break;
 
         case 'PUT':
+            requireAdmin(); // Solo administradores pueden modificar usuarios
             $id = getIdParam();
             $input = getJsonInput();
             requireFields($input, ['nombre', 'username']);
 
+            $username = sanitizeString((string) $input['username']);
+            $nombre = sanitizeString((string) $input['nombre']);
+
+            validateLength($username, 'username', 50, 3);
+            validateLength($nombre, 'nombre', 100, 3);
+
             $statusVal = (isset($input['status']) && ($input['status'] === '0' || $input['status'] === 'Inactivo')) ? '0' : '1';
 
-            // Si no se proporcionó contraseña, conservar la que ya está almacenada
+            // Si se proporcionó una nueva contraseña, validarla y hashearla
             if (!empty($input['password'])) {
-                $passwordHash = password_hash($input['password'], PASSWORD_BCRYPT);
+                $password = (string) $input['password'];
+                validateLength($password, 'password', 128, 6);
+                $passwordHash = password_hash($password, PASSWORD_BCRYPT);
             } else {
                 $stmtCurrent = $pdo->prepare('SELECT Password_Usuario FROM dbo.Usuario WHERE Id_Usuario = ?');
                 $stmtCurrent->execute([$id]);
                 $currentPass = $stmtCurrent->fetchColumn();
-                $passwordHash = $currentPass ?: password_hash('default123', PASSWORD_BCRYPT);
+                if (!$currentPass) {
+                    jsonResponse(false, null, 'Usuario no encontrado', 404);
+                }
+                $passwordHash = $currentPass;
             }
 
             $sql = 'DECLARE @msg VARCHAR(200);
@@ -103,8 +127,8 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 $id,
-                $input['username'],
-                $input['nombre'],
+                $username,
+                $nombre,
                 $passwordHash,
                 $statusVal,
             ]);
@@ -118,7 +142,13 @@ try {
             break;
 
         case 'DELETE':
+            requireAdmin(); // Solo administradores pueden eliminar usuarios
             $id = getIdParam();
+
+            // Evitar que el usuario se elimine a sí mismo
+            if ($id === (int) ($currentUser['id'] ?? 0)) {
+                jsonResponse(false, null, 'No puede eliminar su propio usuario activo.', 400);
+            }
 
             $sql = 'DECLARE @msg VARCHAR(200);
                     EXEC dbo.sp_EliminarUsuario
@@ -141,8 +171,5 @@ try {
             jsonResponse(false, null, 'Método no permitido', 405);
     }
 } catch (PDOException $e) {
-    if (str_contains($e->getMessage(), 'REFERENCE constraint') || str_contains($e->getMessage(), 'FK_')) {
-        jsonResponse(false, null, 'No se puede eliminar: el usuario tiene registros en bitácora o módulos', 409);
-    }
-    jsonResponse(false, null, 'Error en la base de datos: ' . $e->getMessage(), 500);
+    handleDbException($e, 'Error en el módulo de usuarios');
 }

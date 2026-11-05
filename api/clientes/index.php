@@ -1,15 +1,18 @@
 <?php
 // ==========================================
 // API: CLIENTES (Compatible con script.sql - Stored Procedures)
-// GET    /api/clientes/          → listar
-// GET    /api/clientes/?id=5     → uno
-// POST   /api/clientes/          → crear (sp_AgregarCliente)
-// PUT    /api/clientes/?id=5     → editar (sp_EditarCliente)
-// DELETE /api/clientes/?id=5     → eliminar (sp_EliminarCliente)
+// GET    /api/clientes/          → listar (requiere auth)
+// GET    /api/clientes/?id=5     → uno (requiere auth)
+// POST   /api/clientes/          → crear (requiere auth)
+// PUT    /api/clientes/?id=5     → editar (requiere auth)
+// DELETE /api/clientes/?id=5     → eliminar (requiere auth)
 // ==========================================
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/http.php';
+
+// Todas las operaciones requieren autenticación
+requireAuth();
 
 $pdo = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
@@ -45,6 +48,22 @@ try {
             $input = getJsonInput();
             requireFields($input, ['nombre', 'direccion_calle', 'direccion_numero', 'direccion_cp', 'direccion_cd']);
 
+            $nombre = sanitizeString($input['nombre']);
+            $calle = sanitizeString($input['direccion_calle']);
+            $numero = sanitizeString($input['direccion_numero']);
+            $cp = sanitizeString($input['direccion_cp']);
+            $ciudad = sanitizeString($input['direccion_cd']);
+            $rfc = !empty($input['rfc']) ? strtoupper(sanitizeString($input['rfc'])) : null;
+
+            validateLength($nombre, 'nombre', 100, 2);
+            validateLength($calle, 'direccion_calle', 100, 2);
+            validateLength($numero, 'direccion_numero', 20, 1);
+            validateLength($cp, 'direccion_cp', 10, 3);
+            validateLength($ciudad, 'direccion_cd', 50, 2);
+            if ($rfc !== null) {
+                validateLength($rfc, 'rfc', 15, 10);
+            }
+
             $sql = 'DECLARE @msg VARCHAR(100), @ok BIT;
                     EXEC dbo.sp_AgregarCliente
                         @Nombre_Clientes = ?,
@@ -59,12 +78,12 @@ try {
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
-                $input['nombre'],
-                $input['direccion_calle'],
-                $input['direccion_numero'],
-                $input['direccion_cp'],
-                $input['direccion_cd'],
-                $input['rfc'] ?? null,
+                $nombre,
+                $calle,
+                $numero,
+                $cp,
+                $ciudad,
+                $rfc,
             ]);
             $res = $stmt->fetch();
 
@@ -79,6 +98,22 @@ try {
             $id = getIdParam();
             $input = getJsonInput();
             requireFields($input, ['nombre', 'direccion_calle', 'direccion_numero', 'direccion_cp', 'direccion_cd']);
+
+            $nombre = sanitizeString($input['nombre']);
+            $calle = sanitizeString($input['direccion_calle']);
+            $numero = sanitizeString($input['direccion_numero']);
+            $cp = sanitizeString($input['direccion_cp']);
+            $ciudad = sanitizeString($input['direccion_cd']);
+            $rfc = !empty($input['rfc']) ? strtoupper(sanitizeString($input['rfc'])) : null;
+
+            validateLength($nombre, 'nombre', 100, 2);
+            validateLength($calle, 'direccion_calle', 100, 2);
+            validateLength($numero, 'direccion_numero', 20, 1);
+            validateLength($cp, 'direccion_cp', 10, 3);
+            validateLength($ciudad, 'direccion_cd', 50, 2);
+            if ($rfc !== null) {
+                validateLength($rfc, 'rfc', 15, 10);
+            }
 
             $sql = 'DECLARE @msg VARCHAR(100), @ok BIT;
                     EXEC dbo.sp_EditarCliente
@@ -96,12 +131,12 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 $id,
-                $input['nombre'],
-                $input['direccion_calle'],
-                $input['direccion_numero'],
-                $input['direccion_cp'],
-                $input['direccion_cd'],
-                $input['rfc'] ?? null,
+                $nombre,
+                $calle,
+                $numero,
+                $cp,
+                $ciudad,
+                $rfc,
             ]);
             $res = $stmt->fetch();
 
@@ -137,8 +172,5 @@ try {
             jsonResponse(false, null, 'Método no permitido', 405);
     }
 } catch (PDOException $e) {
-    if (str_contains($e->getMessage(), 'REFERENCE constraint') || str_contains($e->getMessage(), 'FK_')) {
-        jsonResponse(false, null, 'No se puede eliminar: el cliente tiene registros asociados (ventas)', 409);
-    }
-    jsonResponse(false, null, 'Error en la base de datos: ' . $e->getMessage(), 500);
+    handleDbException($e, 'Error en el módulo de clientes');
 }
