@@ -30,6 +30,9 @@ const sections = {
   clientes: document.getElementById('moduleClientes'),
   proveedores: document.getElementById('moduleProveedores'),
   usuarios: document.getElementById('moduleUsuarios'),
+  productos: document.getElementById('moduleProductos'),
+  inventarios: document.getElementById('moduleInventarios'),
+  inventario: document.getElementById('moduleInventarios'),
   other: document.getElementById('moduleOther')
 };
 const contentTitle = document.getElementById('contentTitle');
@@ -53,17 +56,24 @@ function setActiveModule(targetName) {
     if (parentLi) parentLi.classList.add('active');
   }
 
+  // Normalizar targetName
+  const normalizedTarget = (targetName === 'inventario') ? 'inventarios' : targetName;
+
   // Mostrar la sección correspondiente
-  if (sections[targetName]) {
-    sections[targetName].classList.remove('hidden');
+  if (sections[normalizedTarget]) {
+    sections[normalizedTarget].classList.remove('hidden');
 
     // Recargar datos frescos si el módulo cuenta con función de carga
-    if (targetName === 'proveedores' && typeof window.loadProveedores === 'function') {
+    if (normalizedTarget === 'proveedores' && typeof window.loadProveedores === 'function') {
       window.loadProveedores();
-    } else if (targetName === 'clientes' && typeof window.loadClientes === 'function') {
+    } else if (normalizedTarget === 'clientes' && typeof window.loadClientes === 'function') {
       window.loadClientes();
-    } else if (targetName === 'usuarios' && typeof window.loadUsuarios === 'function') {
+    } else if (normalizedTarget === 'usuarios' && typeof window.loadUsuarios === 'function') {
       window.loadUsuarios();
+    } else if (normalizedTarget === 'productos' && typeof window.loadProductos === 'function') {
+      window.loadProductos();
+    } else if (normalizedTarget === 'inventarios' && typeof window.loadInventarios === 'function') {
+      window.loadInventarios();
     }
   } else if (sections.other) {
     sections.other.classList.remove('hidden');

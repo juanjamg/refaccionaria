@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Estilos del Sistema -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=5">
   <script>
     (function() {
       const savedTheme = localStorage.getItem('refa_theme');
@@ -486,7 +486,201 @@
       </div>
     </section>
 
-    <!-- OTRAS SECCIONES (HISTORIAL, INVENTARIOS, PRODUCTOS) -->
+    <!-- SECCIÓN DE PRODUCTOS -->
+    <section class="module-section hidden" id="moduleProductos">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-screwdriver-wrench" style="color: #0284c7;"></i> Catálogo de Productos y Refacciones</h2>
+          <p>Administración de autopartes, códigos SKU, líneas de producto, precios y existencias</p>
+        </div>
+        <button type="button" class="btn-primary-action" id="btnOpenProductoModal">
+          <i class="fa-solid fa-plus"></i> Nueva Refacción
+        </button>
+      </div>
+
+      <!-- Métricas Productos -->
+      <div class="stats-grid-row">
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa-solid fa-boxes-stacked"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statTotalProductos">0</span>
+            <span class="stat-label-text">Total Refacciones</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statProductosActivos">0</span>
+            <span class="stat-label-text">Productos Activos</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-orange">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statProductosStockBajo">0</span>
+            <span class="stat-label-text">Stock Crítico (≤ 5)</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa-solid fa-dollar-sign"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statValorCatalogo">$0</span>
+            <span class="stat-label-text">Valor Total Catálogo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Tabla Productos -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchProductos" placeholder="Buscar por SKU, descripción, marca o línea..." autocomplete="off">
+          </div>
+          <div class="filter-controls-group">
+            <select id="filterProductoLinea" class="filter-select-input">
+              <option value="todas">Todas las líneas / categorías</option>
+            </select>
+            <select id="filterProductoEstado" class="filter-select-input">
+              <option value="todos">Todos los estados</option>
+              <option value="Activo">Activos</option>
+              <option value="Inactivo">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaProductos">
+            <thead>
+              <tr>
+                <th>Código SKU</th>
+                <th>Refacción / Descripción</th>
+                <th>Marca</th>
+                <th>Línea / Categoría</th>
+                <th>Precio Venta</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProductos">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-bar">
+          <span id="countProductosInfo">Mostrando 0 productos</span>
+          <span>Refaccionaria Central - Catálogo de Refacciones</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN DE INVENTARIOS -->
+    <section class="module-section hidden" id="moduleInventarios">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-boxes-stacked" style="color: #10b981;"></i> Control de Inventarios y Almacén</h2>
+          <p>Supervisión de existencias físicas, costo promedio ponderado, valorización y movimientos de stock</p>
+        </div>
+        <button type="button" class="btn-primary-action btn-success-action" id="btnOpenAjusteModal">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i> Movimiento de Stock
+        </button>
+      </div>
+
+      <!-- Métricas Inventarios -->
+      <div class="stats-grid-row">
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-blue">
+            <i class="fa-solid fa-cubes"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statInvUnidades">0</span>
+            <span class="stat-label-text">Unidades en Almacén</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-green">
+            <i class="fa-solid fa-sack-dollar"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statInvValorCosto">$0</span>
+            <span class="stat-label-text">Valor Inventario (Costo)</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-orange">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statInvAgotados">0</span>
+            <span class="stat-label-text">Artículos Agotados</span>
+          </div>
+        </div>
+        <div class="module-stat-card">
+          <div class="stat-icon-wrapper stat-icon-purple">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+          <div class="stat-text-info">
+            <span class="stat-value-num" id="statInvBajoStock">0</span>
+            <span class="stat-label-text">Stock Bajo (≤ 5)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Tabla Inventarios -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInventarios" placeholder="Buscar por SKU, producto, marca o línea..." autocomplete="off">
+          </div>
+          <div class="filter-controls-group">
+            <select id="filterInventarioNivel" class="filter-select-input">
+              <option value="todos">Todos los niveles de stock</option>
+              <option value="Normal">Stock Óptimo (> 5)</option>
+              <option value="Bajo">Stock Bajo (1 a 5)</option>
+              <option value="Agotado">Sin Stock (0)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaInventarios">
+            <thead>
+              <tr>
+                <th>Código SKU</th>
+                <th>Refacción / Autoparte</th>
+                <th>Nivel Existencia</th>
+                <th>Costo Prom. Unit.</th>
+                <th>Precio Venta Unit.</th>
+                <th>Valor Almacén (Costo)</th>
+                <th>Valor Esperado (Venta)</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyInventarios">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer-bar">
+          <span id="countInventariosInfo">Mostrando 0 artículos</span>
+          <span>Refaccionaria Central - Control y Valuación de Existencias</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTRAS SECCIONES (HISTORIAL) -->
     <section class="module-section hidden" id="moduleOther">
       <div class="preview-card">
         <h1 id="contentTitle">Módulo</h1>
@@ -664,6 +858,120 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL PRODUCTO / REFACCIÓN ==================== -->
+  <div class="custom-modal-overlay" id="modalProducto">
+    <div class="custom-modal-content" style="max-width: 680px;">
+      <div class="modal-header-bar">
+        <h3 id="modalProductoTitle"><i class="fa-solid fa-screwdriver-wrench"></i> Registrar Nueva Refacción</h3>
+        <button type="button" class="btn-close-modal" data-close="modalProducto"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formProducto">
+        <input type="hidden" id="productoId">
+        <div class="modal-body-scroll">
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoSku">Código SKU / Número de Parte *</label>
+              <input type="text" id="productoSku" class="form-control-input" required placeholder="Ej. BAL-BRM-001" maxlength="50" style="font-family: monospace; font-weight: 600; text-transform: uppercase;">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoMarca">Marca / Fabricante</label>
+              <input type="text" id="productoMarca" class="form-control-input" placeholder="Ej. Brembo, Fritec, Bosch" maxlength="100">
+            </div>
+          </div>
+
+          <div class="form-group-item" style="margin-bottom: 14px;">
+            <label class="form-label-title" for="productoNombre">Nombre / Descripción de la Refacción *</label>
+            <input type="text" id="productoNombre" class="form-control-input" required placeholder="Ej. Juego de Balatas Delanteras Cerámicas" maxlength="200">
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoLinea">Línea y Categoría</label>
+              <select id="productoLinea" class="form-control-select">
+                <option value="">-- Seleccionar línea / categoría --</option>
+              </select>
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoStatus">Estado en Catálogo *</label>
+              <select id="productoStatus" class="form-control-select" required>
+                <option value="1" selected>Activo (Disponible para venta)</option>
+                <option value="0">Inactivo (Oculto en mostrador)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoVenta">Precio Venta ($) *</label>
+              <input type="number" id="productoVenta" class="form-control-input" required step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoCompra">Costo Compra ($)</label>
+              <input type="number" id="productoCompra" class="form-control-input" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" for="productoStock">Stock Inicial</label>
+              <input type="number" id="productoStock" class="form-control-input" min="0" step="1" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-action" data-close="modalProducto">Cancelar</button>
+          <button type="submit" class="btn-primary-action"><i class="fa-solid fa-floppy-disk"></i> Guardar Refacción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL MOVIMIENTO / AJUSTE DE INVENTARIO ==================== -->
+  <div class="custom-modal-overlay" id="modalAjusteInventario">
+    <div class="custom-modal-content" style="max-width: 580px;">
+      <div class="modal-header-bar">
+        <h3 id="modalAjusteTitle"><i class="fa-solid fa-boxes-stacked"></i> Movimiento de Inventario y Stock</h3>
+        <button type="button" class="btn-close-modal" data-close="modalAjusteInventario"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formAjusteInventario">
+        <div class="modal-body-scroll">
+          <div class="form-group-item" style="margin-bottom: 14px;">
+            <label class="form-label-title" for="ajusteProductoId">Refacción / Autoparte a Gestionar *</label>
+            <select id="ajusteProductoId" class="form-control-select" required>
+              <option value="">-- Seleccionar refacción / producto --</option>
+            </select>
+          </div>
+
+          <div class="form-grid-2col">
+            <div class="form-group-item">
+              <label class="form-label-title" for="ajusteTipoMovimiento">Tipo de Movimiento *</label>
+              <select id="ajusteTipoMovimiento" class="form-control-select" required>
+                <option value="entrada" selected>🟢 Entrada de Mercancía / Compra (+)</option>
+                <option value="salida">🔴 Salida por Merma / Devolución (-)</option>
+                <option value="ajuste">🔵 Reajuste Físico Exacto (=)</option>
+              </select>
+            </div>
+            <div class="form-group-item">
+              <label class="form-label-title" id="labelAjusteCantidad" for="ajusteCantidad">Cantidad a Ingresar *</label>
+              <input type="number" id="ajusteCantidad" class="form-control-input" required min="1" step="1" placeholder="Ej. 10">
+            </div>
+          </div>
+
+          <div class="form-group-item" id="groupAjusteCosto" style="margin-top: 14px;">
+            <label class="form-label-title" for="ajusteCosto">Costo Unitario de Compra ($ MXN)</label>
+            <input type="number" id="ajusteCosto" class="form-control-input" step="0.01" min="0" placeholder="0.00 (Opcional para actualizar costo promedio)">
+          </div>
+
+          <div class="form-group-item" style="margin-top: 14px;">
+            <label class="form-label-title" for="ajusteMotivo">Motivo o Documento de Referencia</label>
+            <input type="text" id="ajusteMotivo" class="form-control-input" placeholder="Ej. Factura F-5120 de Brembo, revisión de stock físico, etc.">
+          </div>
+        </div>
+        <div class="modal-footer-bar">
+          <button type="button" class="btn-secondary-action" data-close="modalAjusteInventario">Cancelar</button>
+          <button type="submit" class="btn-primary-action"><i class="fa-solid fa-arrow-right-arrow-left"></i> Confirmar Movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== MODAL INICIO DE SESIÓN ==================== -->
   <div class="custom-modal-overlay" id="modalLogin">
     <div class="custom-modal-content" style="max-width: 420px;">
@@ -705,11 +1013,13 @@
 
   <!-- SCRIPTS MODULARES -->
   <script src="js/api.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=4"></script>
   <script src="js/ventas.js?v=3"></script>
   <script src="js/clientes.js?v=3"></script>
   <script src="js/proveedores.js?v=4"></script>
   <script src="js/usuarios.js?v=4"></script>
+  <script src="js/productos.js?v=2"></script>
+  <script src="js/inventarios.js?v=2"></script>
 
 </body>
 </html>
