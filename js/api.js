@@ -47,4 +47,20 @@ const authApi = {
 };
 
 window.apiRequest = apiRequest;
+const ventasApi = {
+  async getAll(limit = 50) {
+    return await apiRequest(`ventas/?limit=${limit}`);
+  },
+  async getById(id) {
+    return await apiRequest(`ventas/?id=${id}`);
+  },
+  async create(saleData) {
+    return await apiRequest('ventas/', {
+      method: 'POST',
+      body: JSON.stringify(saleData)
+    });
+  }
+};
+
 window.authApi = authApi;
+window.ventasApi = ventasApi;

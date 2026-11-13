@@ -33,6 +33,7 @@ const sections = {
   productos: document.getElementById('moduleProductos'),
   inventarios: document.getElementById('moduleInventarios'),
   inventario: document.getElementById('moduleInventarios'),
+  historial: document.getElementById('moduleHistorial'),
   other: document.getElementById('moduleOther')
 };
 const contentTitle = document.getElementById('contentTitle');
@@ -74,6 +75,10 @@ function setActiveModule(targetName) {
       window.loadProductos();
     } else if (normalizedTarget === 'inventarios' && typeof window.loadInventarios === 'function') {
       window.loadInventarios();
+    } else if (normalizedTarget === 'ventas' && typeof window.loadPos === 'function') {
+      window.loadPos();
+    } else if (normalizedTarget === 'historial' && typeof window.loadHistorialVentas === 'function') {
+      window.loadHistorialVentas();
     }
   } else if (sections.other) {
     sections.other.classList.remove('hidden');
@@ -166,9 +171,22 @@ document.querySelectorAll('[data-close]').forEach(btn => {
   });
 });
 
+function triggerModalStaticPing(overlay) {
+  const content = overlay.querySelector('.custom-modal-content');
+  if (content) {
+    content.classList.remove('modal-static-ping');
+    void content.offsetWidth;
+    content.classList.add('modal-static-ping');
+  }
+}
+
 document.querySelectorAll('.custom-modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
+      if (overlay.id === 'modalLogin' || overlay.dataset.static === 'true') {
+        triggerModalStaticPing(overlay);
+        return;
+      }
       overlay.classList.remove('open');
     }
   });
@@ -176,7 +194,13 @@ document.querySelectorAll('.custom-modal-overlay').forEach(overlay => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.custom-modal-overlay.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.custom-modal-overlay.open').forEach(m => {
+      if (m.id === 'modalLogin' || m.dataset.static === 'true') {
+        triggerModalStaticPing(m);
+        return;
+      }
+      m.classList.remove('open');
+    });
   }
 });
 

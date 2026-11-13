@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <!-- Estilos del Sistema -->
-  <link rel="stylesheet" href="css/styles.css?v=5">
+  <link rel="stylesheet" href="css/styles.css?v=7">
   <script>
     (function() {
       const savedTheme = localStorage.getItem('refa_theme');
@@ -154,88 +154,134 @@
   <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content" id="mainContent">
     
-    <!-- SECCIÓN DE VENTAS -->
+    <!-- SECCIÓN DE VENTAS (PUNTO DE VENTA POS) -->
     <section class="module-section" id="moduleVentas">
       <div class="pos-layout">
         
         <!-- PANEL IZQUIERDO: CARRITO DE COMPRAS Y COBRO -->
         <div class="pos-card pos-cart-card">
-          <div class="pos-pill-header">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>Carrito de Compras</span>
+          <div class="pos-pill-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span>Carrito de Compras</span>
+              <span class="pos-badge-count" id="cartCountBadge">0 artículos</span>
+            </div>
+            <button type="button" class="pos-btn-clear" id="btnVaciarCarrito" title="Vaciar Carrito">
+              <i class="fa-solid fa-trash-can"></i> Vaciar
+            </button>
           </div>
 
+          <!-- Selector de Cliente -->
+          <div class="pos-field-group">
+            <label for="selectPosCliente" class="pos-label"><i class="fa-solid fa-user-tag" style="color: #2563eb;"></i> Cliente:</label>
+            <div class="pos-select-wrapper">
+              <select id="selectPosCliente" class="pos-select">
+                <option value="">Cargando catálogo de clientes...</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Contenedor scrollable de artículos en el carrito -->
+          <div class="pos-cart-items-wrapper" id="posCartItemsWrapper">
+            <div class="pos-cart-empty-state" id="posCartEmpty">
+              <i class="fa-solid fa-cart-arrow-down"></i>
+              <p>El carrito está vacío</p>
+              <span>Haz clic en cualquier refacción del catálogo para agregarla</span>
+            </div>
+            <div id="posCartList"></div>
+          </div>
+
+          <!-- Resumen de Subtotal, Descuento y Total -->
           <div class="pos-summary-row">
             <span class="pos-summary-label">Subtotal:</span>
-            <span class="pos-summary-value" id="cartSubtotal">$0</span>
+            <span class="pos-summary-value" id="cartSubtotal">$0.00</span>
           </div>
 
           <div class="pos-field-group">
             <label for="inputDescuento" class="pos-label">Descuento total a la venta ($):</label>
-            <input type="number" id="inputDescuento" class="pos-input" value="0" min="0">
+            <input type="number" id="inputDescuento" class="pos-input" value="0" min="0" step="any">
           </div>
 
           <div class="pos-summary-row pos-total-row">
-            <span class="pos-total-label">Total:</span>
-            <span class="pos-total-value" id="cartTotal">$0</span>
+            <span class="pos-total-label">Total a Pagar:</span>
+            <span class="pos-total-value" id="cartTotal" style="color: #16a34a; font-size: 22px;">$0.00</span>
           </div>
 
-          <div class="pos-field-group">
-            <label for="selectTipoPago" class="pos-label">Tipo de Pago:</label>
-            <div class="pos-select-wrapper">
-              <select id="selectTipoPago" class="pos-select">
-                <option value="efectivo" selected>Efectivo</option>
-                <option value="tarjeta_debito">Tarjeta de Débito</option>
-                <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                <option value="transferencia">Transferencia</option>
-              </select>
+          <!-- Forma de Pago y Comprobante -->
+          <div class="pos-payment-grid">
+            <div class="pos-field-group" style="margin-bottom: 0;">
+              <label for="selectTipoPago" class="pos-label">Forma de Pago:</label>
+              <div class="pos-select-wrapper">
+                <select id="selectTipoPago" class="pos-select">
+                  <option value="1" data-slug="efectivo" selected>Efectivo</option>
+                  <option value="2" data-slug="tarjeta_debito">Tarjeta de Débito</option>
+                  <option value="3" data-slug="tarjeta_credito">Tarjeta de Crédito</option>
+                  <option value="4" data-slug="transferencia">Transferencia</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="pos-field-group" style="margin-bottom: 0;">
+              <label for="selectComprobante" class="pos-label">Comprobante:</label>
+              <div class="pos-select-wrapper">
+                <select id="selectComprobante" class="pos-select">
+                  <option value="Ticket" selected>Ticket de Venta</option>
+                  <option value="Factura">Factura CFDI</option>
+                  <option value="Nota">Nota de Venta</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div class="pos-field-group">
-            <label for="selectMetodoPago" class="pos-label">Método de Pago:</label>
-            <div class="pos-select-wrapper">
-              <select id="selectMetodoPago" class="pos-select">
-                <option value="pue" selected>Pago en una sola exhibición (PUE)</option>
-                <option value="ppd">Pago en parcialidades o diferido (PPD)</option>
-              </select>
+          <!-- Paga con y Cambio -->
+          <div class="pos-payment-grid">
+            <div class="pos-field-group" style="margin-bottom: 0;">
+              <label for="inputPagaCon" class="pos-label">Paga con ($):</label>
+              <input type="number" id="inputPagaCon" class="pos-input" placeholder="0.00" min="0" step="any">
             </div>
-          </div>
 
-          <div class="pos-field-group">
-            <label for="selectComprobante" class="pos-label">Comprobante:</label>
-            <div class="pos-select-wrapper">
-              <select id="selectComprobante" class="pos-select">
-                <option value="ticket" selected>Ticket</option>
-                <option value="factura">Factura</option>
-                <option value="nota">Nota de venta</option>
-              </select>
+            <div class="pos-field-group" style="margin-bottom: 0;">
+              <label class="pos-label">Cambio:</label>
+              <div class="pos-cambio-display" id="cartCambio">$0.00</div>
             </div>
-          </div>
-
-          <div class="pos-field-group">
-            <label for="inputPagaCon" class="pos-label">Con cuánto paga:</label>
-            <input type="number" id="inputPagaCon" class="pos-input" placeholder="" min="0">
-          </div>
-
-          <div class="pos-summary-row">
-            <span class="pos-summary-label">Cambio:</span>
-            <span class="pos-summary-value" id="cartCambio">$0</span>
           </div>
 
           <div class="pos-actions-row">
-            <button type="button" class="btn-pos btn-cobrar" id="btnCobrar">COBRAR</button>
-            <button type="button" class="btn-pos btn-apartado" id="btnApartado">APARTADO</button>
+            <button type="button" class="btn-pos btn-cobrar" id="btnCobrar">
+              <i class="fa-solid fa-cash-register" style="margin-right: 8px;"></i> COBRAR
+            </button>
+            <button type="button" class="btn-pos btn-apartado" id="btnApartado">
+              <i class="fa-solid fa-clock-rotate-left" style="margin-right: 8px;"></i> APARTADO
+            </button>
           </div>
         </div>
 
-        <!-- PANEL DERECHO: SELECCIONAR PRODUCTOS Y MODELOS (EN BLANCO) -->
+        <!-- PANEL DERECHO: CATÁLOGO DE PRODUCTOS Y REFACCIONES -->
         <div class="pos-card pos-products-card">
-          <div class="pos-pill-header text-uppercase">
-            SELECCIONAR PRODUCTOS Y MODELOS
+          <div class="pos-pill-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-boxes-stacked"></i>
+              <span class="text-uppercase">Catálogo de Refacciones</span>
+            </div>
+            <span class="pos-catalog-count" id="posCatalogCount">Cargando...</span>
           </div>
-          <div class="pos-blank-area" id="productsBlankArea">
-            <!-- Sección dejada en blanco según lo solicitado -->
+
+          <!-- Barra de Búsqueda y Filtro de Categoría -->
+          <div class="pos-search-toolbar">
+            <div class="search-input-box" style="flex: 2; min-width: 220px;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="searchPosProducto" placeholder="Buscar por SKU, nombre, marca o modelo...">
+            </div>
+            <div class="pos-select-wrapper" style="flex: 1; min-width: 180px;">
+              <select id="filterPosLinea" class="pos-select" style="height: 42px;">
+                <option value="todas">Todas las categorías</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Grid interactivo de productos -->
+          <div class="pos-products-grid" id="posProductsGrid">
+            <!-- Renderizado dinámico desde ventas.js -->
           </div>
         </div>
 
@@ -680,6 +726,51 @@
       </div>
     </section>
 
+    <!-- SECCIÓN DE HISTORIAL DE VENTAS -->
+    <section class="module-section hidden" id="moduleHistorial">
+      <div class="module-header-container">
+        <div class="module-title-box">
+          <h2><i class="fa-solid fa-receipt" style="color: #2563eb;"></i> Historial de Ventas</h2>
+          <p>Consulta tickets emitidos, reimprime comprobantes y analiza las transacciones de caja</p>
+        </div>
+        <button type="button" class="btn-primary-action" id="btnIrAPos">
+          <i class="fa-solid fa-cash-register"></i> Nueva Venta
+        </button>
+      </div>
+
+      <!-- Tarjeta de Tabla Historial -->
+      <div class="data-card-wrapper">
+        <div class="table-toolbar-bar">
+          <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchHistorial" placeholder="Buscar por folio (#V-000001), cliente, método de pago...">
+          </div>
+          <button type="button" class="btn-table-action" id="btnRefreshHistorial" title="Recargar ventas">
+            <i class="fa-solid fa-rotate"></i> Actualizar
+          </button>
+        </div>
+
+        <div class="table-responsive-box">
+          <table class="crud-table" id="tablaHistorial">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Fecha y Hora</th>
+                <th>Cliente</th>
+                <th>Método de Pago</th>
+                <th>Unidades</th>
+                <th>Total Cobrado</th>
+                <th style="text-align: center;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyHistorial">
+              <!-- Renderizado dinámico desde ventas.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- OTRAS SECCIONES (HISTORIAL) -->
     <section class="module-section hidden" id="moduleOther">
       <div class="preview-card">
@@ -973,7 +1064,7 @@
   </div>
 
   <!-- ==================== MODAL INICIO DE SESIÓN ==================== -->
-  <div class="custom-modal-overlay" id="modalLogin">
+  <div class="custom-modal-overlay" id="modalLogin" data-static="true">
     <div class="custom-modal-content" style="max-width: 420px;">
       <div class="modal-header-bar">
         <h3 id="modalLoginTitle"><i class="fa-solid fa-lock"></i> Iniciar Sesión</h3>
@@ -1005,6 +1096,87 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL TICKET DE VENTA ==================== -->
+  <div class="custom-modal-overlay" id="modalTicketVenta">
+    <div class="custom-modal-content" style="max-width: 440px;">
+      <div class="modal-header-bar">
+        <h3><i class="fa-solid fa-receipt" style="color: #16a34a;"></i> Comprobante de Venta</h3>
+        <button type="button" class="btn-close-modal" data-close="modalTicketVenta"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body-scroll" style="padding: 20px;">
+        <div class="pos-ticket-paper" id="posTicketPaper">
+          <div class="pos-ticket-header">
+            <h4>REFACCIONARIA CENTRAL</h4>
+            <p>Venta de Autopartes y Refacciones</p>
+            <p style="font-size: 12px; color: #64748b;">RFC: RCE240101XYZ</p>
+            <div class="pos-ticket-divider"></div>
+            <div class="pos-ticket-meta">
+              <div><strong>Folio:</strong> <span id="ticketFolio">V-000000</span></div>
+              <div><strong>Fecha:</strong> <span id="ticketFecha">--/--/----</span></div>
+              <div><strong>Cajero:</strong> <span id="ticketCajero">Caja 1</span></div>
+              <div><strong>Cliente:</strong> <span id="ticketCliente">Público General</span></div>
+            </div>
+            <div class="pos-ticket-divider"></div>
+          </div>
+
+          <table class="pos-ticket-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Cant / Desc</th>
+                <th style="text-align: right;">P.U.</th>
+                <th style="text-align: right;">Importe</th>
+              </tr>
+            </thead>
+            <tbody id="ticketTbodyItems">
+              <!-- Partidas del ticket -->
+            </tbody>
+          </table>
+
+          <div class="pos-ticket-divider"></div>
+
+          <div class="pos-ticket-totals">
+            <div class="ticket-total-line">
+              <span>Subtotal:</span>
+              <span id="ticketSubtotal">$0.00</span>
+            </div>
+            <div class="ticket-total-line">
+              <span>Descuento:</span>
+              <span id="ticketDescuento">$0.00</span>
+            </div>
+            <div class="ticket-total-line ticket-grand-total">
+              <span>TOTAL:</span>
+              <span id="ticketTotal">$0.00</span>
+            </div>
+            <div class="ticket-total-line" style="margin-top: 6px; font-size: 13px;">
+              <span>Método de Pago:</span>
+              <span id="ticketMetodo">Efectivo</span>
+            </div>
+            <div class="ticket-total-line" id="ticketRowPagaCon" style="font-size: 13px;">
+              <span>Paga con:</span>
+              <span id="ticketPagaCon">$0.00</span>
+            </div>
+            <div class="ticket-total-line" id="ticketRowCambio" style="font-size: 13px;">
+              <span>Cambio:</span>
+              <span id="ticketCambio">$0.00</span>
+            </div>
+          </div>
+
+          <div class="pos-ticket-divider"></div>
+          <div class="pos-ticket-footer">
+            <p>¡Gracias por su compra!</p>
+            <p style="font-size: 11px; color: #94a3b8;">Conserve su ticket para cualquier garantía o aclaración</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar" style="justify-content: space-between;">
+        <button type="button" class="btn-cancel-action" data-close="modalTicketVenta">Cerrar</button>
+        <button type="button" class="btn-primary-action" id="btnPrintTicket" style="background: #16a34a;">
+          <i class="fa-solid fa-print"></i> Imprimir Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- NOTIFICACIÓN TOAST FLOTANTE -->
   <div class="toast-notice" id="toastNotice">
     <i class="fa-solid fa-circle-check"></i>
@@ -1012,9 +1184,9 @@
   </div>
 
   <!-- SCRIPTS MODULARES -->
-  <script src="js/api.js?v=3"></script>
-  <script src="js/app.js?v=4"></script>
-  <script src="js/ventas.js?v=3"></script>
+  <script src="js/api.js?v=4"></script>
+  <script src="js/app.js?v=6"></script>
+  <script src="js/ventas.js?v=5"></script>
   <script src="js/clientes.js?v=3"></script>
   <script src="js/proveedores.js?v=4"></script>
   <script src="js/usuarios.js?v=4"></script>

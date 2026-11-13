@@ -4,3 +4,4 @@ arquitectura-distribuida.md
 api/config/db.php
 .env
 .env.local
+test_agent_write.txt
